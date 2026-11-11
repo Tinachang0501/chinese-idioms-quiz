@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>國中成語互動練習（1188題｜涵蓋講義1～3000詞條）</title>
+  <style>
+    :root {
+      --primary: #1d4ed8;
+      --primary-hover: #1e40af;
+      --accent: #d97706;
+      --success: #15803d;
+      --success-bg: #dcfce7;
+      --danger: #b91c1c;
+      --danger-bg: #fee2e2;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --border: #cbd5e1;
+      --highlight: #eff6ff;
+      --font-scale: 1.3; /* 預設大字體適配投影與平板 */
+    }
+
+    [data-theme="dark"] {
+      --primary: #3b82f6;
+      --primary-hover: #60a5fa;
+      --accent: #fbbf24;
+      --success: #22c55e;
+      --success-bg: #064e3b33;
+      --danger: #ef4444;
+      --danger-bg: #7f1d1d33;
+      --bg: #0b0f19;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --highlight: #1e3a8a33;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    /* 頂部教學控制列 (專為老師平板操作設計) */
+    header {
+      background: var(--card-bg);
+      border-bottom: 2px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.06);
+    }
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 10px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-badge {
+      background: var(--primary);
+      color: white;
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      letter-spacing: 0.5px;
+    }
+    .brand-title h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    /* 工具按鈕組 (平板好按超大觸控區) */
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 9px 18px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text);
+      font-size: 0.95rem;
+      cursor: pointer;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+      transition: all 0.15s;
+    }
+    .btn:active {
+      transform: scale(0.96);
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    .btn-warning {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+      font-size: 1.05rem;
+      padding: 10px 20px;
+    }
+
+    /* 試卷切換與模式選擇區 */
+    .nav-tabs-wrapper {
+      background: var(--card-bg);
+      border-bottom: 2px solid var(--border);
+      padding: 10px 18px;
+    }
+    .nav-tabs-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* 平板專用試卷選擇器 (支援 36 卷快速切換) */
+    .set-selector-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .set-dropdown-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 10px;
+    }
+    .set-select {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--primary);
+      background: transparent;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .btn-set-nav {
+      padding: 8px 14px;
+      font-size: 0.95rem;
+    }
+
+    /* 模式切換按鈕 */
+    .mode-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .mode-pill {
+      padding: 8px 16px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.95rem;
+      transition: all 0.15s;
+    }
+    .mode-pill.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* 主要內容區 */
+    main {
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 16px 18px;
+    }
+
+    /* 模式一：投影大螢幕卡片 */
+    #view-projector {
+      display: none;
+    }
+    #view-projector.active {
+      display: block;
+    }
+
+    /* 題號快速列 */
+    .quick-num-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 10px 4px 14px 4px;
+      margin-bottom: 14px;
+      scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch;
+    }
+    .num-circle {
+      min-width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .num-circle.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      transform: scale(1.1);
+      box-shadow: 0 4px 10px rgba(29, 78, 216, 0.35);
+    }
+
+    /* 投影主要題卡 */
+    .projector-card {
+      background: var(--card-bg);
+      border: 2.5px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.06);
+      margin-bottom: 20px;
+    }
+
+    .projector-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 2px dashed var(--border);
+    }
+    .proj-badge-q {
+      background: var(--highlight);
+      color: var(--primary);
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 1.15rem;
+    }
+    .proj-badge-idiom {
+      background: var(--bg);
+      color: var(--text-muted);
+      border: 1.5px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    /* 題幹 */
+    .projector-stem {
+      font-size: calc(1.4rem * var(--font-scale));
+      font-weight: 700;
+      line-height: 1.7;
+      margin-bottom: 24px;
+      color: var(--text);
+      letter-spacing: 0.5px;
+    }
+
+    /* 四個選項卡片 */
+    .projector-options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .proj-option {
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      font-size: calc(1.15rem * var(--font-scale));
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      line-height: 1.6;
+      transition: all 0.15s;
+    }
+    .proj-option:active {
+      transform: scale(0.98);
+    }
+    .proj-option.selected {
+      border-color: var(--primary);
+      background: var(--highlight);
+    }
+    .proj-option.correct-revealed {
+      border-color: var(--success) !important;
+      background: var(--success-bg) !important;
+      font-weight: 800;
+    }
+    .proj-option.wrong-revealed {
+      border-color: var(--danger) !important;
+      background: var(--danger-bg) !important;
+      opacity: 0.7;
+    }
+
+    /* 詳解專區 (平時完全隱藏) */
+    .projector-explanation {
+      display: none;
+      background: var(--highlight);
+      border-left: 6px solid var(--success);
+      border-radius: 14px;
+      padding: 22px;
+      margin-top: 20px;
+      animation: fadeIn 0.25s ease-out;
+    }
+    .projector-explanation.show {
+      display: block;
+    }
+    .proj-ans-line {
+      font-size: calc(1.3rem * var(--font-scale));
+      font-weight: 800;
+      color: var(--success);
+      margin-bottom: 12px;
+    }
+    .proj-analysis-text {
+      font-size: calc(1.1rem * var(--font-scale));
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    /* 導航按鈕列 */
+    .projector-nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .nav-big-btn {
+      padding: 14px 28px;
+      font-size: 1.15rem;
+      border-radius: 14px;
+      font-weight: 800;
+    }
+
+    /* 模式二：自主速查模式 */
+    #view-lookup {
+      display: none;
+    }
+    #view-lookup.active {
+      display: block;
+    }
+    .search-panel {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+    .search-input-box {
+      display: flex;
+      gap: 10px;
+      margin: 12px 0;
+      flex-wrap: wrap;
+    }
+    .search-input-box input {
+      flex: 1;
+      min-width: 260px;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 1.05rem;
+      background: var(--bg);
+      color: var(--text);
+      font-weight: 600;
+    }
+    .lookup-card {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    /* 模式三：全卷逐題瀏覽 */
+    #view-alllist {
+      display: none;
+    }
+    #view-alllist.active {
+      display: block;
+    }
+
+    /* 36卷快速總覽彈窗 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+    .modal-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      max-width: 800px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+    .modal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+    }
+    .modal-set-btn {
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .modal-set-btn:hover, .modal-set-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .header-inner { flex-direction: column; align-items: flex-start; }
+      .toolbar-actions { width: 100%; justify-content: space-between; }
+      .nav-tabs-container { flex-direction: column; align-items: flex-start; }
+      .projector-stem { font-size: 1.25rem; }
+      .proj-option { font-size: 1.05rem; }
+      .modal-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="questions_data.js?v=20261111_v12"></script>
+  <script src="auth_guard.js?v=20261111_v1"></script>
+</head>
+<body>
+
+  <!-- 頂部頁首導航 -->
+  <header>
+    <div class="header-inner">
+      <div class="brand-title">
+        <span class="brand-badge">成語練習</span>
+        <h1>國中成語互動練習（1188題｜涵蓋講義1～3000詞條）</h1>
+      </div>
+      
+      <!-- 平板字體調節與控制 -->
+      <div class="toolbar-actions">
+        <button class="btn" id="btnReturnFlashcards" onclick="returnToFlashcards()" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); color:#ffffff; border-color:#1d4ed8; font-weight:900; box-shadow:0 2px 8px rgba(37,99,235,0.35);">
+          🔙 回到閃卡原本進度
+        </button>
+        <button class="btn" style="background:#fef3c7; color:#92400e; font-weight:800; border-color:#f59e0b;" onclick="window.location.href=window.location.pathname+'?v='+Date.now()">🔄 強制刷新快取</button>
+        <button class="btn" onclick="adjustFontSize(0.15)">🔍🔤 字體放大 A+</button>
+        <button class="btn" onclick="adjustFontSize(-0.15)">🔤 字體縮小 A-</button>
+        <button class="btn" id="btnSwitchAccountQuiz" onclick="window.IdiomAuth && window.IdiomAuth.switchAccount()" style="display:none;">🔄 切換帳號</button>
+        <button class="btn" id="btnToggleTheme" onclick="toggleTheme()">🌓 切換深色</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 一鍵返回閃卡原進度提示橫幅 -->
+  <div id="flashcardReturnBanner" onclick="returnToFlashcards()" style="display:none; max-width:1400px; margin:10px auto 0; padding:10px 18px; background:linear-gradient(135deg, rgba(37,99,235,0.12), rgba(59,130,246,0.16)); border:1.5px solid #3b82f6; border-radius:12px; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; font-weight:800; color:#1d4ed8; cursor:pointer; box-sizing:border-box;">
+    <span id="flashcardReturnText">🎴 正在演練歷屆會考真題｜隨時可返回先前的閃卡練習進度</span>
+    <button class="btn btn-primary" style="padding:6px 14px; font-size:0.9rem; font-weight:900; border-radius:999px;">🔙 一鍵回到閃卡原本進度</button>
+  </div>
+
+  <!-- 試卷選擇與模式列 -->
+  <div class="nav-tabs-wrapper">
+    <div class="nav-tabs-container">
+      <!-- 試卷選單 (支援全部 36 卷) -->
+      <div class="set-selector-bar">
+        <button class="btn btn-set-nav" onclick="changeSetDelta(-1)">⬅️ 上一卷</button>
+        <div class="set-dropdown-box">
+          <span style="font-weight:800; font-size:0.95rem; color:var(--text-muted);">選擇試卷：</span>
+          <select id="setSelectDropdown" class="set-select" onchange="selectSet(this.value)">
+            <!-- 動態填入 36 卷選項 -->
+          </select>
+        </div>
+        <button class="btn btn-set-nav" onclick="changeSetDelta(1)">下一卷 ➡️</button>
+        <button class="btn btn-primary btn-set-nav" onclick="openSetModal()">📚 36卷快速總覽</button>
+      </div>
+
+      <!-- 模式切換 -->
+      <div class="mode-pills">
+        <button class="mode-pill active" id="modeBtnProj" onclick="switchMode('projector')">🖥️ 投影 / 平板教學模式 (大字體)</button>
+        <button class="mode-pill" id="modeBtnLookup" onclick="switchMode('lookup')">🔍 學生自主速查 (1188題)</button>
+        <button class="mode-pill" id="modeBtnAll" onclick="switchMode('alllist')">📋 全卷 33 題逐題瀏覽</button>
+      </div>
+    </div>
+  </div>
+
+  <div role="note" style="max-width:1400px;margin:10px auto 0;padding:10px 18px;color:var(--text-muted);font-size:.92rem;">
+    本系統完整收錄 90~115 年歷屆基測、國中會考、特招原題，以及 1~3538 條全量會考成語素養題庫。
+  </div>
+  <main>
+    <!-- 模式一：大螢幕投影 / 平板單題互動教學模式 -->
+    <section id="view-projector" class="active">
+      <!-- 題號快速滑動欄 (1 ~ 33 題) -->
+      <div class="quick-num-bar" id="projectorNumBar"></div>
+
+      <!-- 投影主要題目卡片 -->
+      <div class="projector-card">
+        <div class="projector-meta">
+          <span class="proj-badge-q" id="projQBadge">第 1 / 33 題 (講義 #001)</span>
+          <!-- 核心防破梗：預設僅顯示出處年份，完全不透露成語名稱與考點！ -->
+          <span class="proj-badge-idiom" id="projIdiomBadge">出處：歷屆會考題型</span>
+          <div>
+            <button class="btn btn-warning" id="btnRevealAns" onclick="toggleRevealAnswer()">
+              👁️ 點擊【揭曉答案與詳解】
+            </button>
+          </div>
+        </div>
+
+        <div class="projector-stem" id="projStem">題目載入中...</div>
+
+        <div class="projector-options" id="projOptions"></div>
+
+        <!-- 詳解區塊 (老師點選按鈕後才展開) -->
+        <div class="projector-explanation" id="projExplanation">
+          <div class="proj-ans-line" id="projAnsLine">🎯 正確答案：(B)</div>
+          <div class="proj-analysis-text" id="projAnalysisText">解析內容...</div>
+        </div>
+      </div>
+
+      <!-- 導航大按鈕 (平板專用好按) -->
+      <div class="projector-nav-bar">
+        <button class="btn nav-big-btn" onclick="prevQuestion()">⬅️ 上一題 (Prev)</button>
+        <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-muted);">
+          第 <span id="currentQDisplay" style="color:var(--primary); font-size:1.4rem;">1</span> 題 / 共 <span id="totalQDisplay">33</span> 題
+        </div>
+        <button class="btn btn-primary nav-big-btn" onclick="nextQuestion()">下一題 (Next) ➡️</button>
+      </div>
+    </section>
+
+    <!-- 模式二：學生自主查答案與詳解專區 -->
+    <section id="view-lookup">
+      <div class="search-panel">
+        <h2 style="font-size: 1.25rem; margin-bottom: 6px;">🔍 學生自主查答案與考點速查 (全套 36 卷 · 1188 題資料庫)</h2>
+        <p style="font-size: 0.95rem; color: var(--text-muted);">
+          在平板或手機上輸入成語名稱、關鍵字、講義編號（如 #301）或題號，即可立即顯示正解、考點分析與近反義詞：
+        </p>
+        <div class="search-input-box">
+          <input type="text" id="lookupInput" placeholder="請輸入成語、關鍵字或題號（例如：美輪美奐、#353、八拜）..." oninput="handleLookup()">
+          <button class="btn btn-primary" onclick="handleLookup()">搜尋</button>
+          <button class="btn" onclick="clearLookup()">清空</button>
+          <label style="display:flex; align-items:center; gap:6px; font-weight:700; cursor:pointer;">
+            <input type="checkbox" id="searchAllSetsCheck" onchange="handleLookup()" checked> 搜尋全部 36 卷 (1188 題)
+          </label>
+        </div>
+        <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 6px;">當前卷題目快速查看：</div>
+        <div class="quick-num-bar" id="lookupQuickTags"></div>
+      </div>
+
+      <div id="lookupResultsList"></div>
+    </section>
+
+    <!-- 模式三：全卷 33 題一覽模式 -->
+    <section id="view-alllist">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px; flex-wrap:wrap; gap:10px;">
+        <h2 style="font-size: 1.25rem;" id="alllistTitle">📋 卷一（001～100題大範圍 33 題全覽）</h2>
+        <button class="btn btn-primary" onclick="window.print()">🖨️ 列印 / 另存 PDF</button>
+      </div>
+      <div id="allListContainer"></div>
+    </section>
+  </main>
+
+  <!-- 36卷快速總覽彈窗 -->
+  <div class="modal-overlay" id="setModalOverlay" onclick="closeSetModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 style="font-size:1.3rem; font-weight:800; color:var(--primary);">📚 國中會考成語大範圍試卷清單 (共 36 卷)</h2>
+        <button class="btn" onclick="closeSetModal()">✕ 關閉</button>
+      </div>
+      <div class="modal-grid" id="modalGridContainer">
+        <!-- 動態渲染 36 卷按鈕 -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 試卷與狀態管理
+    // 全套 36 卷國中會考成語大範圍題庫 (共 1188 題，100% 全覆蓋 1～3538 條成語 (全36卷 · 1188題)，選項零遺珠)
+    var all_sets_data = window.all_sets_data || {};
+                function getAnsIndex(q) {
+      if (typeof q.ans === 'number') return q.ans;
+      if (typeof q.ans === 'string') {
+        const c = q.ans.trim().toUpperCase().charCodeAt(0);
+        if (c >= 65 && c <= 68) return c - 65;
+      }
+      return 0;
+    }
+    function getAnsLetter(q) {
+      if (typeof q.ans === 'string') return q.ans.trim().toUpperCase();
+      if (typeof q.ans === 'number') return getAnsLetter(q);
+      return 'A';
+    }
+
+    let currentSet = 1;
+    let currentQIndex = 0;
+    let selectedOptionIndex = null;
+    let isRevealed = false;
+    let fontScale = 1.3;
+    let currentMode = "projector";
+
+    // 取得當前試卷的 33 題數據
+    function getQuestions(setNum = currentSet) {
+      if (typeof all_sets_data !== "undefined" && all_sets_data[setNum]) {
+        return all_sets_data[setNum];
+      }
+      return [];
+    }
+
+    // 初始化 36 卷下拉選單與彈窗
+    function initSetControls() {
+      const select = document.getElementById("setSelectDropdown");
+      const modalGrid = document.getElementById("modalGridContainer");
+      select.innerHTML = "";
+      modalGrid.innerHTML = "";
+
+      // 🎯 歷屆基測會考原題特輯選項 (優先置頂)
+      const optExam = document.createElement("option");
+      optExam.value = "real_exam";
+      optExam.style.fontWeight = "bold";
+      optExam.style.color = "#dc2626";
+      optExam.innerText = "🎯 歷屆基測會考成語真題特輯 (全153題原題精選)";
+      select.appendChild(optExam);
+
+      const btnExamModal = document.createElement("button");
+      btnExamModal.className = `modal-set-btn ${currentSet === 'real_exam' ? 'active' : ''}`;
+      btnExamModal.id = "modalSetBtn_real_exam";
+      btnExamModal.style.gridColumn = "1 / -1";
+      btnExamModal.style.background = currentSet === 'real_exam' ? '#dc2626' : '#fee2e2';
+      btnExamModal.style.borderColor = '#dc2626';
+      btnExamModal.style.color = currentSet === 'real_exam' ? '#fff' : '#991b1b';
+      btnExamModal.innerHTML = `<strong>🎯 歷屆基測會考成語真題特輯 (全153題原題精選)</strong><div style="font-size:0.85rem; opacity:0.9;">90~115年歷屆基測、國中會考、特招原始成語考題一網打盡</div>`;
+      btnExamModal.onclick = () => { selectSet('real_exam'); closeSetModal(); };
+      modalGrid.appendChild(btnExamModal);
+
+      for (let i = 1; i <= 36; i++) {
+        const startNum = (i - 1) * 100 + 1;
+        const endNum = i === 36 ? 3538 : i * 100;
+        const optTitle = `卷${i}：第 ${startNum.toString().padStart(3, '0')} ～ ${endNum.toString().padStart(3, '0')} 題 (33 題)`;
+
+        // 下拉選單 option
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.innerText = optTitle;
+        select.appendChild(opt);
+
+        // 彈窗按鈕
+        const btn = document.createElement("button");
+        btn.className = `modal-set-btn ${i === currentSet ? 'active' : ''}`;
+        btn.id = `modalSetBtn_${i}`;
+        btn.innerHTML = `<strong>卷 ${i}</strong><div style="font-size:0.85rem; opacity:0.85;">#${startNum} ~ #${endNum}</div>`;
+        btn.onclick = () => {
+          selectSet(i);
+          closeSetModal();
+        };
+        modalGrid.appendChild(btn);
+      }
+    }
+
+    // 切換試卷
+    function selectSet(setNum) {
+      if (setNum === "real_exam" || setNum === "0" || setNum === 0) {
+        currentSet = "real_exam";
+      } else {
+        let n = parseInt(setNum);
+        if (isNaN(n) || n < 1) n = 1;
+        if (n > 36) n = 36;
+        currentSet = n;
+      }
+      currentQIndex = 0;
+      selectedOptionIndex = null;
+      isRevealed = false;
+
+      const dropdown = document.getElementById("setSelectDropdown");
+      if (dropdown) dropdown.value = currentSet;
+      document.querySelectorAll(".modal-set-btn").forEach(b => {
+        b.classList.toggle("active", b.id === `modalSetBtn_${currentSet}`);
+      });
+
+      const titleEl = document.getElementById("alllistTitle");
+      if (titleEl) {
+        if (currentSet === "real_exam") {
+          titleEl.innerText = `🎯 歷屆基測會考特招成語真題特輯（全套 153 題真實原題全覽）`;
+        } else {
+          const startNum = (currentSet - 1) * 100 + 1;
+          const endNum = currentSet === 36 ? 3538 : currentSet * 100;
+          titleEl.innerText = `📋 卷${currentSet}（第 ${startNum} ～ ${endNum} 題大範圍 33 題全覽）`;
+        }
+      }
+
+      renderProjectorQuickBar();
+      loadProjectorQuestion(0);
+      renderLookupQuickTags();
+      handleLookup();
+      renderAllList();
+    }
+
+    function changeSetDelta(delta) {
+      if (currentSet === "real_exam") {
+        selectSet(delta > 0 ? 1 : 36);
+      } else {
+        let next = currentSet + delta;
+        if (next < 1) next = 36;
+        if (next > 36) next = 1;
+        selectSet(next);
+      }
+    }
+
+    function openSetModal() {
+      document.getElementById("setModalOverlay").classList.add("open");
+    }
+    function closeSetModal() {
+      document.getElementById("setModalOverlay").classList.remove("open");
+    }
+
+    // 模式切換
+    function switchMode(mode) {
+      currentMode = mode;
+      document.getElementById("view-projector").classList.toggle("active", mode === "projector");
+      document.getElementById("view-lookup").classList.toggle("active", mode === "lookup");
+      document.getElementById("view-alllist").classList.toggle("active", mode === "alllist");
+
+      document.getElementById("modeBtnProj").classList.toggle("active", mode === "projector");
+      document.getElementById("modeBtnLookup").classList.toggle("active", mode === "lookup");
+      document.getElementById("modeBtnAll").classList.toggle("active", mode === "alllist");
+
+      if (mode === "projector") {
+        loadProjectorQuestion(currentQIndex);
+      } else if (mode === "lookup") {
+        renderLookupQuickTags();
+        handleLookup();
+      } else if (mode === "alllist") {
+        renderAllList();
+      }
+    }
+
+    // 字體縮放 (投影/平板必備)
+    function adjustFontSize(delta) {
+      fontScale = Math.min(2.4, Math.max(0.85, fontScale + delta));
+      document.documentElement.style.setProperty('--font-scale', fontScale);
+    }
+
+    // 渲染投影題號按鈕 (1 ~ 33 題)
+    function renderProjectorQuickBar() {
+      const qs = getQuestions();
+      const container = document.getElementById("projectorNumBar");
+      container.innerHTML = "";
+
+      qs.forEach((q, idx) => {
+        const btn = document.createElement("div");
+        btn.className = `num-circle ${idx === currentQIndex ? 'active' : ''}`;
+        btn.innerText = q.id;
+        btn.onclick = () => loadProjectorQuestion(idx);
+        container.appendChild(btn);
+      });
+    }
+
+    // 載入當前投影題目 (防破梗核心：完全不透露成語名稱！)
+    function loadProjectorQuestion(idx) {
+      const qs = getQuestions();
+      if (!qs || qs.length === 0) return;
+      currentQIndex = idx;
+      selectedOptionIndex = null;
+      isRevealed = false;
+
+      const q = qs[idx];
+      const totalQs = qs.length;
+      if (currentSet === "real_exam") {
+        document.getElementById("projQBadge").innerText = `🎯 歷屆真題 第 ${idx + 1} / ${totalQs} 題`;
+        document.getElementById("projIdiomBadge").innerText = `真題出處：${q.year}`;
+      } else {
+        document.getElementById("projQBadge").innerText = `第 ${q.id} / ${totalQs} 題 (講義 #${q.code})`;
+        document.getElementById("projIdiomBadge").innerText = `出處年份：${q.year}`;
+      }
+      document.getElementById("projStem").innerText = q.stem;
+      document.getElementById("currentQDisplay").innerText = idx + 1;
+      const totalDisplay = document.getElementById("totalQDisplay");
+      if (totalDisplay) totalDisplay.innerText = totalQs;
+
+      renderProjectorOptions(q);
+
+      // 隱藏詳解區塊
+      document.getElementById("projExplanation").classList.remove("show");
+      document.getElementById("btnRevealAns").innerText = "👁️ 點擊【揭曉答案與詳解】";
+
+      // 同步題號按鈕高亮
+      document.querySelectorAll("#projectorNumBar .num-circle").forEach((el, i) => {
+        el.classList.toggle("active", i === idx);
+        if (i === idx) {
+          el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      });
+    }
+
+    // 渲染投影選項
+    function renderProjectorOptions(q) {
+      const container = document.getElementById("projOptions");
+      container.innerHTML = "";
+
+      q.options.forEach((optText, optIdx) => {
+        const item = document.createElement("div");
+        item.className = "proj-option";
+        if (selectedOptionIndex === optIdx) item.classList.add("selected");
+
+        if (isRevealed) {
+          if (optIdx === getAnsIndex(q)) item.classList.add("correct-revealed");
+          else if (selectedOptionIndex === optIdx) item.classList.add("wrong-revealed");
+        }
+
+        item.innerHTML = `
+          <strong>(${String.fromCharCode(65 + optIdx)})</strong>
+          <span>${optText}</span>
+        `;
+        item.onclick = () => {
+          if (!isRevealed) {
+            selectedOptionIndex = optIdx;
+            renderProjectorOptions(q);
+          }
+        };
+        container.appendChild(item);
+      });
+    }
+
+    // 點擊揭曉答案與詳解
+    function toggleRevealAnswer() {
+      const q = getQuestions()[currentQIndex];
+      isRevealed = !isRevealed;
+
+      const expBox = document.getElementById("projExplanation");
+      const btn = document.getElementById("btnRevealAns");
+
+      if (isRevealed) {
+        expBox.classList.add("show");
+        document.getElementById("projAnsLine").innerHTML = `🎯 正確答案：(${getAnsLetter(q)}) ｜ 📌 核心成語：【${q.idiom}】`;
+        document.getElementById("projAnalysisText").innerHTML = `<strong>【解析與近反義】：</strong>${q.analysis}`;
+        btn.innerText = "🔒 隱藏答案與詳解";
+      } else {
+        expBox.classList.remove("show");
+        document.getElementById("projIdiomBadge").innerText = `講義索引：${q.year}`;
+        btn.innerText = "👁️ 點擊【揭曉答案與詳解】";
+      }
+
+      renderProjectorOptions(q);
+    }
+
+    function prevQuestion() {
+      if (currentQIndex > 0) {
+        loadProjectorQuestion(currentQIndex - 1);
+      }
+    }
+    function nextQuestion() {
+      const qs = getQuestions();
+      if (currentQIndex < qs.length - 1) {
+        loadProjectorQuestion(currentQIndex + 1);
+      }
+    }
+
+    // 鍵盤左右鍵與空白鍵互動
+    document.addEventListener("keydown", function(e) {
+      if (currentMode !== "projector") return;
+      if (e.key === "ArrowLeft") prevQuestion();
+      if (e.key === "ArrowRight") nextQuestion();
+      if (e.key === " " || e.key === "Enter") {
+        if (e.target.tagName !== "INPUT" && e.target.tagName !== "SELECT") {
+          e.preventDefault();
+          toggleRevealAnswer();
+        }
+      }
+    });
+
+    // 平板觸控手勢滑動支援 (Swipe Left / Right)
+    let touchStartX = 0;
+    let touchEndX = 0;
+    document.addEventListener("touchstart", function(e) {
+      touchStartX = e.changedTouches[0].screenX;
+    }, false);
+    document.addEventListener("touchend", function(e) {
+      if (currentMode !== "projector") return;
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    }, false);
+
+    function handleSwipe() {
+      const threshold = 60;
+      if (touchEndX < touchStartX - threshold) {
+        nextQuestion(); // 向左滑動下一題
+      } else if (touchEndX > touchStartX + threshold) {
+        prevQuestion(); // 向右滑動上一題
+      }
+    }
+
+    // 自主速查模式
+    function renderLookupQuickTags() {
+      const qs = getQuestions();
+      const container = document.getElementById("lookupQuickTags");
+      container.innerHTML = "";
+
+      qs.forEach((q) => {
+        const tag = document.createElement("div");
+        tag.className = "num-circle";
+        tag.innerText = q.id;
+        tag.onclick = () => {
+          document.getElementById("lookupInput").value = q.idiom;
+          handleLookup();
+        };
+        container.appendChild(tag);
+      });
+    }
+
+    function handleLookup() {
+      const searchAll = document.getElementById("searchAllSetsCheck").checked;
+      let qsPool = [];
+      if (searchAll) {
+        for (let s = 1; s <= 30; s++) {
+          const qs = getQuestions(s);
+          qs.forEach(q => qsPool.push({ ...q, setNum: s }));
+        }
+      } else {
+        const qs = getQuestions(currentSet);
+        qs.forEach(q => qsPool.push({ ...q, setNum: currentSet }));
+      }
+
+      const keyword = document.getElementById("lookupInput").value.trim().toLowerCase();
+      const container = document.getElementById("lookupResultsList");
+      container.innerHTML = "";
+
+      const filtered = qsPool.filter(q => {
+        if (!keyword) return true;
+        const qNumStr = q.id.toString();
+        const codeStr = q.code;
+        return q.idiom.toLowerCase().includes(keyword) || 
+               q.stem.toLowerCase().includes(keyword) || 
+               q.analysis.toLowerCase().includes(keyword) ||
+               qNumStr === keyword ||
+               codeStr === keyword;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted); font-size:1.15rem;">查無符合「${keyword}」的成語或題目，請嘗試其他關鍵字。</div>`;
+        return;
+      }
+
+      filtered.slice(0, 50).forEach(q => {
+        const card = document.createElement("div");
+        card.className = "lookup-card";
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+            <strong style="color:var(--primary); font-size:1.15rem;">📌 [卷${q.setNum}] 第 ${q.id} 題（講義 #${q.code}）：【${q.idiom}】</strong>
+            <span style="font-size:0.85rem; background:var(--highlight); padding:3px 10px; border-radius:6px; font-weight:700;">${q.year}</span>
+          </div>
+          <div style="font-size:1.05rem; font-weight:600; margin-bottom:10px;">${q.stem}</div>
+          <div style="background:var(--highlight); padding:12px 16px; border-radius:10px; border-left:4px solid var(--success);">
+            <div style="color:var(--success); font-weight:800; font-size:1.1rem; margin-bottom:6px;">
+              ✅ 正確答案：(${getAnsLetter(q)}) ${q.options[getAnsIndex(q)]}
+            </div>
+            <div style="font-size:1rem; line-height:1.7;">
+              <strong>【解析與近反義】：</strong>${q.analysis}
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function clearLookup() {
+      document.getElementById("lookupInput").value = "";
+      handleLookup();
+    }
+
+    // 全卷瀏覽渲染
+    function renderAllList() {
+      const qs = getQuestions();
+      const container = document.getElementById("allListContainer");
+      container.innerHTML = "";
+
+      qs.forEach(q => {
+        const card = document.createElement("div");
+        card.className = "projector-card";
+        card.style.padding = "20px";
+        card.style.marginBottom = "16px";
+
+        let opts = q.options.map((opt, i) => `<div><strong>(${String.fromCharCode(65 + i)})</strong> ${opt}</div>`).join("");
+
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span style="font-weight:800; color:var(--primary); font-size:1.05rem;">第 ${q.id} 題 (講義 #${q.code})</span>
+            <span style="color:var(--text-muted); font-size:0.85rem;">講義索引：${q.year}</span>
+          </div>
+          <div style="font-size:1.05rem; font-weight:600; margin-bottom:12px;">${q.stem}</div>
+          <div style="display:grid; gap:6px; margin-bottom:12px; font-size:0.95rem; background:var(--bg); padding:10px 14px; border-radius:10px;">
+            ${opts}
+          </div>
+          <div style="background:var(--highlight); padding:10px 14px; border-radius:8px; font-size:0.95rem;">
+            <strong style="color:var(--success);">正解：(${getAnsLetter(q)}) 【${q.idiom}】</strong> ｜ <strong>解析：</strong>${q.analysis}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleTheme() {
+      const isDark = document.body.getAttribute("data-theme") === "dark";
+      if (isDark) {
+        document.body.removeAttribute("data-theme");
+        document.getElementById("btnToggleTheme").innerText = "🌓 切換深色";
+      } else {
+        document.body.setAttribute("data-theme", "dark");
+        document.getElementById("btnToggleTheme").innerText = "☀️ 切換淺色";
+      }
+    }
+
+    // 一鍵回到閃卡原進度
+    function initFlashcardReturnHint(authRes) {
+      try {
+        const stuRaw = localStorage.getItem("current_idiom_student");
+        const btn = document.getElementById("btnReturnFlashcards");
+        const banner = document.getElementById("flashcardReturnBanner");
+        const bannerText = document.getElementById("flashcardReturnText");
+        const urlParams = new URLSearchParams(window.location.search);
+        const fromFlashcards = urlParams.get("from") === "flashcards" || urlParams.get("set") === "real_exam";
+
+        if (stuRaw) {
+          const stu = JSON.parse(stuRaw);
+          const progRaw = localStorage.getItem(`idiom_progress_${stu.studentKey}`);
+          if (progRaw) {
+            const prog = JSON.parse(progRaw);
+            const mainR = prog.mainRange || "all";
+            const rp = prog.rangeProgress && prog.rangeProgress[mainR];
+            const idx = rp ? ((rp.resumeIndex || 0) + 1) : ((prog.lastIndex || 0) + 1);
+            const idiom = rp ? (rp.lastIdiom || "") : (prog.lastIdiom || "");
+            const cardHint = idiom ? `第 ${idx} 張【${idiom}】` : `第 ${idx} 張`;
+            if (btn) btn.innerHTML = `🔙 回到閃卡進度 (${cardHint})`;
+            if (bannerText) {
+              bannerText.innerHTML = `🎓 ${stu.name} 您好！正在進行歷屆會考真題練習 ｜ 原閃卡進度：<strong>${cardHint}</strong>`;
+            }
+          }
+        } else if (authRes?.whitelistInfo?.name) {
+          if (bannerText) {
+            bannerText.innerHTML = `🎓 ${authRes.whitelistInfo.classId}班 ${authRes.whitelistInfo.name} 您好！隨時可切換至記憶閃卡`;
+          }
+        }
+        if (banner && (fromFlashcards || stuRaw)) {
+          banner.style.display = "flex";
+        }
+      } catch (e) {}
+    }
+
+    function returnToFlashcards() {
+      window.location.href = "flashcards.html?resume=main";
+    }
+
+    window.onload = function() {
+      window.IdiomAuth.requireSchoolAuth("questions", (authRes) => {
+        all_sets_data = window.all_sets_data || {};
+        const swBtn = document.getElementById("btnSwitchAccountQuiz");
+        if (swBtn) swBtn.style.display = "inline-flex";
+        initFlashcardReturnHint(authRes);
+        initSetControls();
+        const urlParams = new URLSearchParams(window.location.search);
+        const reqSet = urlParams.get("set");
+        if (reqSet === "real_exam" || reqSet === "0") {
+          selectSet("real_exam");
+        } else if (reqSet) {
+          const n = parseInt(reqSet);
+          if (!isNaN(n) && n >= 1 && n <= 36) {
+            selectSet(n);
+          } else {
+            selectSet(1);
+          }
+        } else {
+          selectSet(1);
+        }
+      });
+    };
+  </script>
+</body>
+</html>

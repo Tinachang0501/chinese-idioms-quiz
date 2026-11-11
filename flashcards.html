@@ -1,0 +1,2715 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>國中成語 3538 條智能翻轉閃卡系統 (Flashcards)</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #d97706;
+      --success: #16a34a;
+      --success-bg: #dcfce7;
+      --danger: #dc2626;
+      --danger-bg: #fee2e2;
+      --bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #cbd5e1;
+      --card-front-bg: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      --card-back-bg: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    [data-theme="dark"] {
+      --primary: #3b82f6;
+      --primary-hover: #60a5fa;
+      --accent: #f59e0b;
+      --success: #22c55e;
+      --success-bg: #064e3b33;
+      --danger: #ef4444;
+      --danger-bg: #7f1d1d33;
+      --bg: #0b0f19;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --card-front-bg: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      --card-back-bg: linear-gradient(135deg, #064e3b 0%, #1e293b 100%);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* 頂部導航列 */
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+    .header-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-title h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    .brand-badge {
+      font-size: 0.75rem;
+      background: #16a34a;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .btn {
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn:hover { background: #e2e8f0; }
+    [data-theme="dark"] .btn:hover { background: #334155; }
+    .btn-primary { background: var(--primary); color: white; border-color: var(--primary); }
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    /* 控制面板 */
+    .controls-panel {
+      max-width: 800px;
+      width: 100%;
+      margin: 16px auto 0;
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .controls-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .select-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .custom-select {
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+    }
+    .mode-pills {
+      display: inline-flex;
+      background: rgba(0,0,0,0.06);
+      padding: 4px;
+      border-radius: 12px;
+      gap: 4px;
+    }
+    [data-theme="dark"] .mode-pills { background: rgba(255,255,255,0.08); }
+    .mode-pill {
+      padding: 6px 14px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mode-pill.active {
+      background: var(--card-bg);
+      color: var(--primary);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    /* 進度條與計數 */
+    .progress-bar-container {
+      width: 100%;
+      height: 8px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .stats-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    /* 3D 翻轉卡片容器 */
+    .card-scene {
+      max-width: 760px;
+      width: 100%;
+      margin: 12px auto;
+      padding: 0 16px;
+      perspective: 1200px;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .flip-card {
+      width: 100%;
+      min-height: 380px;
+      height: clamp(380px, 50vh, 520px);
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+      border-radius: 20px;
+    }
+    .flip-card.flipped, .flip-card.is-flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      min-height: 100%;
+      border-radius: 20px;
+      padding: 24px 22px;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border: 2px solid var(--border);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      box-sizing: border-box;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
+    }
+    .card-face::-webkit-scrollbar {
+      width: 5px;
+    }
+    .card-face::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.5);
+      border-radius: 10px;
+    }
+    .card-front {
+      background: var(--card-front-bg);
+    }
+    .card-back {
+      background: var(--card-back-bg);
+      transform: rotateY(180deg);
+    }
+
+    /* 卡片內容樣式 */
+    .card-header-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px dashed var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+    .card-id-badge {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--primary);
+      background: rgba(37, 99, 235, 0.1);
+      padding: 4px 10px;
+      border-radius: 8px;
+    }
+    .card-year-badge {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: #fef3c7;
+      padding: 4px 10px;
+      border-radius: 8px;
+    }
+    [data-theme="dark"] .card-year-badge { background: #78350f44; color: #fde68a; }
+
+    .card-body-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 10px 0;
+    }
+    .card-idiom-large {
+      font-size: 2.8rem;
+      font-weight: 900;
+      letter-spacing: 4px;
+      color: var(--primary);
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+    .card-meaning-text {
+      font-size: 1.45rem;
+      font-weight: 700;
+      line-height: 1.6;
+      color: var(--text);
+      max-width: 90%;
+      margin: 0 auto;
+    }
+    .card-cloze-box {
+      margin-top: 20px;
+      background: rgba(0,0,0,0.03);
+      border: 1px solid var(--border);
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-size: 1.15rem;
+      font-weight: 600;
+      line-height: 1.6;
+      color: var(--text-muted);
+      max-width: 95%;
+    }
+    [data-theme="dark"] .card-cloze-box { background: rgba(255,255,255,0.04); }
+
+    .card-tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+      justify-content: center;
+    }
+    .tag-chip {
+      font-size: 0.85rem;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+    .tag-syn { background: #e0f2fe; color: #0284c7; }
+    .tag-ant { background: #fee2e2; color: #dc2626; }
+    [data-theme="dark"] .tag-syn { background: #0369a133; color: #7dd3fc; }
+    [data-theme="dark"] .tag-ant { background: #991b1b33; color: #fca5a5; }
+
+    .card-footer-hint {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border);
+    }
+
+    /* 底部操作工具列 */
+    .action-bar {
+      max-width: 800px;
+      width: 100%;
+      margin: 10px auto 24px;
+      padding: 0 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-nav {
+      flex: 1;
+      padding: 14px 18px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      border-radius: 14px;
+      justify-content: center;
+    }
+    .btn-flip {
+      flex: 1.2;
+      background: #f59e0b;
+      color: white;
+      border-color: #f59e0b;
+    }
+    .btn-flip:hover { background: #d97706; }
+    .btn-tool {
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-size: 1.1rem;
+    }
+    .btn-star.active { background: #fef08a; border-color: #eab308; color: #854d0e; }
+    .btn-check.active { background: #bbf7d0; border-color: #22c55e; color: #15803d; }
+
+
+    .btn-text-mobile { display: none; }
+    .btn-text-full { display: inline; }
+
+    @keyframes shakeAnimation {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .shake-error {
+      animation: shakeAnimation 0.4s ease-in-out;
+      border-color: #ef4444 !important;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25) !important;
+    }
+    @media (max-width: 640px) {
+      .btn-text-full { display: none; }
+      .btn-text-mobile { display: inline; }
+      
+      header {
+        padding: 6px 10px;
+      }
+      .header-inner {
+        gap: 6px;
+      }
+      .brand-title {
+        gap: 6px;
+      }
+      .brand-title h1 {
+        font-size: 0.98rem;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+      .brand-badge {
+        font-size: 0.65rem;
+        padding: 2px 6px;
+        white-space: nowrap;
+      }
+      .nav-links {
+        gap: 4px;
+      }
+      .nav-links .btn {
+        padding: 5px 8px;
+        font-size: 0.78rem;
+        border-radius: 8px;
+      }
+      .nav-links .btn-primary {
+        font-size: 0.8rem;
+        padding: 5px 9px;
+      }
+
+      .student-bar {
+        margin: 6px auto 0;
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        gap: 6px;
+      }
+      .student-info-left {
+        gap: 6px;
+      }
+      .student-name-tag {
+        font-size: 0.75rem;
+        padding: 2px 7px;
+      }
+      .badge-pill {
+        font-size: 0.74rem;
+        padding: 2px 6px;
+      }
+      .badge-sync {
+        font-size: 0.72rem;
+      }
+      .btn-xs {
+        padding: 3px 8px;
+        font-size: 0.75rem;
+      }
+
+      .controls-panel {
+        margin: 6px auto 0;
+        padding: 0 10px;
+        gap: 6px;
+      }
+      .controls-row {
+        gap: 6px;
+      }
+      .select-group {
+        gap: 4px;
+      }
+      .select-group span {
+        font-size: 0.8rem;
+      }
+      .custom-select {
+        padding: 5px 8px;
+        font-size: 0.82rem;
+        max-width: 170px;
+      }
+      .mode-pills {
+        padding: 2px;
+      }
+      .mode-pill {
+        padding: 5px 8px;
+        font-size: 0.78rem;
+      }
+      .stats-line {
+        font-size: 0.78rem;
+      }
+
+      .card-scene {
+        margin: 6px auto 4px;
+        padding: 0 8px;
+        min-height: 260px;
+      }
+      .flip-card {
+        min-height: 260px;
+        height: clamp(260px, 45vh, 420px);
+        border-radius: 16px;
+      }
+      .card-face {
+        min-height: 100%;
+        padding: 14px 12px;
+        border-radius: 16px;
+      }
+      .card-header-meta {
+        padding-bottom: 6px;
+        margin-bottom: 8px;
+      }
+      .card-id-badge, .card-year-badge {
+        font-size: 0.75rem;
+        padding: 2px 6px;
+      }
+      .card-body-content {
+        padding: 2px 0;
+      }
+      .card-idiom-large {
+        font-size: clamp(1.75rem, 6.2vw, 2.2rem);
+        letter-spacing: 2px;
+        margin-bottom: 6px;
+      }
+      .card-meaning-text {
+        font-size: clamp(0.95rem, 3.6vw, 1.15rem);
+        line-height: 1.48;
+        max-width: 100%;
+      }
+      .card-cloze-box {
+        margin-top: 8px;
+        padding: 8px 10px;
+        font-size: clamp(0.84rem, 3.1vw, 0.96rem);
+        line-height: 1.45;
+        max-width: 100%;
+      }
+      .card-tags-row {
+        margin-top: 6px;
+        gap: 4px;
+      }
+      .tag-chip {
+        font-size: 0.72rem;
+        padding: 2px 6px;
+      }
+      .card-footer-hint {
+        padding-top: 6px;
+        font-size: 0.75rem;
+        gap: 4px;
+      }
+
+      .action-bar {
+        margin: 6px auto 14px;
+        padding: 0 8px;
+        gap: 5px;
+      }
+      .btn-nav {
+        padding: 10px 5px;
+        font-size: 0.86rem;
+        border-radius: 10px;
+      }
+      .btn-tool {
+        padding: 8px 9px;
+        font-size: 0.92rem;
+        border-radius: 10px;
+      }
+    }
+
+    /* 橫向模式適應 (Landscape Orientation on Phones) */
+    @media (orientation: landscape) and (max-height: 540px) {
+      .btn-text-full { display: none; }
+      .btn-text-mobile { display: inline; }
+      
+      header { padding: 4px 10px; }
+      .header-inner { gap: 4px; }
+      .brand-title h1 { font-size: 0.9rem; }
+      .brand-badge { display: none; }
+      .nav-links .btn { padding: 4px 6px; font-size: 0.75rem; }
+      
+      .student-bar { margin: 2px auto 0; padding: 2px 10px; font-size: 0.74rem; gap: 4px; }
+      .student-badges { gap: 4px; }
+      
+      .controls-panel { margin: 2px auto 0; padding: 0 10px; gap: 3px; }
+      .custom-select { padding: 3px 6px; font-size: 0.75rem; max-width: 140px; }
+      .mode-pill { padding: 3px 6px; font-size: 0.72rem; }
+      .progress-bar-container { height: 4px; }
+      .stats-line { display: none; }
+
+      .card-scene { margin: 3px auto; padding: 0 10px; min-height: 170px; height: 50vh; }
+      .flip-card { min-height: 170px; height: 100%; border-radius: 12px; }
+      .card-face { min-height: 100%; padding: 6px 12px; border-radius: 12px; }
+      .card-header-meta { padding-bottom: 3px; margin-bottom: 3px; }
+      .card-id-badge, .card-year-badge { font-size: 0.7rem; padding: 1px 5px; }
+      .card-body-content { padding: 1px 0; }
+      .card-idiom-large { font-size: 1.4rem; margin-bottom: 2px; letter-spacing: 2px; }
+      .card-meaning-text { font-size: 0.88rem; line-height: 1.3; }
+      .card-cloze-box { margin-top: 3px; padding: 4px 8px; font-size: 0.8rem; line-height: 1.3; }
+      .card-tags-row { margin-top: 2px; gap: 4px; }
+      .tag-chip { font-size: 0.68rem; padding: 1px 4px; }
+      .card-footer-hint { padding-top: 3px; font-size: 0.68rem; }
+
+      .action-bar { margin: 3px auto 6px; padding: 0 10px; gap: 4px; }
+      .btn-nav { padding: 6px 6px; font-size: 0.8rem; border-radius: 8px; }
+      .btn-tool { padding: 5px 8px; font-size: 0.85rem; border-radius: 8px; }
+    }
+  
+    /* === 學生登入與歷程樣式 === */
+    .student-bar {
+      max-width: 800px;
+      width: 100%;
+      margin: 12px auto 0;
+      padding: 10px 18px;
+      background: linear-gradient(135deg, rgba(37,99,235,0.08), rgba(99,102,241,0.08));
+      border: 1px solid rgba(37,99,235,0.25);
+      border-radius: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+    [data-theme="dark"] .student-bar {
+      background: rgba(30,58,138,0.25);
+      border-color: rgba(96,165,250,0.3);
+    }
+    .student-info-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .student-name-tag {
+      background: var(--primary);
+      color: #fff;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+    }
+    .student-badges {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .badge-pill {
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+    .badge-learned { background: rgba(16,185,129,0.15); color: #059669; }
+    .badge-weak { background: rgba(239,68,68,0.15); color: #dc2626; }
+    .badge-sync { font-size: 0.78rem; color: var(--text-muted); opacity: 0.85; }
+
+    .student-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .btn-xs {
+      padding: 4px 10px;
+      font-size: 0.82rem;
+      border-radius: 8px;
+      font-weight: 700;
+    }
+    .btn-outline-teacher {
+      background: transparent;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+    }
+    .btn-outline-teacher:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* 錯題重練提示橫幅 */
+    .weakness-banner {
+      max-width: 800px;
+      width: 100%;
+      margin: 10px auto -6px;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, #fef3c7, #fee2e2);
+      border: 1px solid #f87171;
+      border-radius: 12px;
+      color: #991b1b;
+      font-size: 0.92rem;
+      font-weight: 800;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(239,68,68,0.12);
+      transition: all 0.2s;
+    }
+    .weakness-banner:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 12px rgba(239,68,68,0.22);
+    }
+    [data-theme="dark"] .weakness-banner {
+      background: rgba(127,29,29,0.35);
+      border-color: #ef4444;
+      color: #fca5a5;
+    }
+
+    /* 彈窗通用遮罩 */
+    .modal-gate-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      animation: fadeIn 0.25s ease;
+    }
+    .modal-gate-box {
+      background: var(--card-bg);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 480px;
+      padding: 32px 28px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    .modal-gate-box h2 {
+      margin: 0 0 8px 0;
+      font-size: 1.5rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .modal-form-group {
+      margin-top: 18px;
+      text-align: left;
+    }
+    .modal-form-group label {
+      display: block;
+      font-weight: 800;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .modal-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 700;
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .modal-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
+    }
+    .modal-grid-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* 教師後台看板彈窗 */
+    .teacher-dashboard-box {
+      max-width: 960px;
+      width: 95vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      text-align: left;
+      padding: 28px;
+    }
+    .stats-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin: 20px 0;
+    }
+    .stat-metric-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-metric-val {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--primary);
+    }
+    .stat-metric-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    /* 高頻錯題排行卡片 */
+    .top-weak-box {
+      background: rgba(239,68,68,0.06);
+      border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+    }
+    .weak-rank-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .weak-rank-pill {
+      background: var(--card-bg);
+      border: 1px solid #f87171;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #b91c1c;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    /* 學生歷程表格 */
+    .teacher-table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-top: 14px;
+    }
+    .teacher-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .teacher-table th, .teacher-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    .teacher-table th {
+      background: var(--bg);
+      font-weight: 800;
+      color: var(--text-muted);
+      position: sticky;
+      top: 0;
+    }
+    .teacher-table tr:hover {
+      background: rgba(37,99,235,0.04);
+    }
+
+    /* Toast 浮動提示 */
+    .toast-popup {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(15, 23, 42, 0.95);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      z-index: 10000;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toast-popup.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+
+    /* 一鍵回到主線進度橫幅 */
+    .return-main-banner {
+      max-width: 800px;
+      width: 100%;
+      margin: 8px auto 0;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(59, 130, 246, 0.15));
+      border: 1.5px solid #3b82f6;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #1d4ed8;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-sizing: border-box;
+    }
+    .return-main-banner:hover {
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(59, 130, 246, 0.22));
+      transform: translateY(-1px);
+    }
+    [data-theme="dark"] .return-main-banner {
+      background: rgba(30, 58, 138, 0.45);
+      border-color: #60a5fa;
+      color: #93c5fd;
+    }
+    @media (max-width: 640px) {
+      .return-main-banner {
+        margin: 6px auto 0;
+        padding: 6px 10px;
+        font-size: 0.78rem;
+        gap: 6px;
+      }
+    }
+
+</style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="flashcards_data.js?v=20261111_v12"></script>
+  <script src="auth_guard.js?v=20261111_v1"></script>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="brand-title">
+        <span class="brand-badge">3538 條全收錄</span>
+        <h1>🎴 國中成語智能翻轉閃卡</h1>
+      </div>
+      <div class="nav-links">
+        <button class="btn btn-primary" onclick="goToRealExam()" style="font-weight:900; background:#dc2626; border-color:#b91c1c; box-shadow:0 2px 6px rgba(220,38,38,0.35);">
+          🎯 <span class="btn-text-full">前往歷屆會考真題測驗</span><span class="btn-text-mobile">會考真題</span>
+        </button>
+        <button class="btn btn-outline-teacher" id="btnTeacherHeader" onclick="openTeacherAuthModal()" style="font-weight:800; display:none;">
+          👩‍🏫 <span class="btn-text-full">老師看板</span><span class="btn-text-mobile">看板</span>
+        </button>
+        <button class="btn" onclick="toggleTheme()" id="btnTheme">
+          <span id="themeIcon">🌓</span> <span class="btn-text-full">切換深色</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 學生身分與練習統計資訊列 -->
+  <div class="student-bar" id="studentBar" style="display:none;">
+    <div class="student-info-left">
+      <span class="student-name-tag" id="stuDisplayTag">🎓 904班 01號 學生</span>
+      <div class="student-badges">
+        <span class="badge-pill badge-learned" id="stuLearnedBadge">✅ 掌握: 0</span>
+        <span class="badge-pill badge-weak" id="stuWeakBadge">🔥 待加強: 0</span>
+        <span class="badge-sync" id="stuSyncBadge">☁️ 已雲端同步</span>
+      </div>
+    </div>
+    <div class="student-actions">
+      <button class="btn btn-xs" onclick="switchStudentAccount()">🔄 切換帳號</button>
+      <button class="btn btn-xs btn-outline-teacher" id="btnTeacherBar" onclick="openTeacherAuthModal()" style="display:none;">👩‍🏫 老師看板</button>
+    </div>
+  </div>
+
+  <!-- 弱點成語集中複習快速提示橫幅 -->
+  <div class="weakness-banner" id="weaknessBanner" style="display:none;" onclick="changeRange('weakness')">
+    <span>🔥 發現您有 <strong id="weaknessBannerCount">0</strong> 條成語不太熟！點擊這裡立即開啟「🔥 錯題弱點強化庫」多練幾次 ➔</span>
+    <span style="font-size:0.85rem; text-decoration:underline;">立即強化 ➔</span>
+  </div>
+
+  <!-- 一鍵回到原本主線進度橫幅 (在待加強或歷屆試題練習時顯示) -->
+  <div class="return-main-banner" id="returnMainBanner" style="display:none;" onclick="returnToMainProgress()">
+    <span id="returnMainText">📌 您目前正在特訓練習區｜隨時可返回主線進度</span>
+    <button class="btn btn-sm btn-primary" style="font-weight:900; border-radius:999px; padding:4px 12px; white-space:nowrap; box-shadow:0 2px 6px rgba(37,99,235,0.3);">🔙 一鍵回到原本進度</button>
+  </div>
+
+
+  <div class="controls-panel">
+    <div class="controls-row">
+      <!-- 範圍選單 -->
+      <div class="select-group">
+        <span style="font-weight:800; font-size:0.9rem; color:var(--text-muted);">練習範圍：</span>
+        <select id="rangeSelect" class="custom-select" onchange="changeRange(this.value)">
+          <!-- 動態填入範圍 -->
+        </select>
+      </div>
+
+      <!-- 練習模式切換 -->
+      <div class="mode-pills">
+        <button class="mode-pill active" id="btnModeGuess" onclick="setPracticeMode('guess')">💡 看解釋猜成語 (提取訓練)</button>
+        <button class="mode-pill" id="btnModeReview" onclick="setPracticeMode('review')">📖 看成語背釋義 (記憶瀏覽)</button>
+      </div>
+
+      <!-- 隨機洗牌按鈕 -->
+      <button class="btn" onclick="restartCurrentRange()" title="從本範圍第 1 張重新開始複習">🔁 從頭複習</button>
+      <button class="btn" onclick="shuffleCards()">🔀 隨機洗牌</button>
+    </div>
+
+    <!-- 進度條與統計 -->
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+    <div class="stats-line">
+      <span id="cardCounter">第 1 / 100 張 卡片</span>
+      <div>
+        <span style="color:var(--success);" id="learnedCount">✅ 已學會: 0</span> ｜
+        <span style="color:var(--danger);" id="needReviewCount">⭐ 需加強: 0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3D 翻轉卡片區 -->
+  <div class="card-scene" onclick="flipCard()">
+    <div class="flip-card" id="mainCard">
+      <!-- 正面 -->
+      <div class="card-face card-front">
+        <div class="card-header-meta">
+          <span class="card-id-badge" id="frontIdBadge">講義編號 #001</span>
+          <span class="card-year-badge" id="frontYearBadge">出處：會考核心</span>
+        </div>
+        <div class="card-body-content" id="frontContent">
+          <!-- 動態填入 -->
+        </div>
+        <div class="card-footer-hint">
+          <span>👆 點擊卡片或按【空白鍵】翻轉卡片 🔄</span>
+        </div>
+      </div>
+
+      <!-- 背面 -->
+      <div class="card-face card-back">
+        <div class="card-header-meta">
+          <span class="card-id-badge" id="backIdBadge">講義編號 #001</span>
+          <span class="card-year-badge" id="backYearBadge">出處：會考核心</span>
+        </div>
+        <div class="card-body-content" id="backContent">
+          <!-- 動態填入 -->
+        </div>
+        <div class="card-footer-hint">
+          <span>👆 點擊卡片翻回正面 🔄</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部操作列 -->
+  <div class="action-bar">
+    <button class="btn btn-nav" onclick="prevCard(event)">⬅️ 上一張</button>
+    <button class="btn btn-nav btn-flip" onclick="flipCard(event)">🔄 翻轉卡片</button>
+    <button class="btn btn-nav btn-primary" onclick="nextCard(event)">下一張 ➡️</button>
+    <button class="btn btn-tool" id="btnSpeak" onclick="speakCurrent(event)" title="國語語音朗讀">🔊</button>
+    <button class="btn btn-tool btn-star" id="btnStar" onclick="toggleStar(event)" title="標記為需加強">⭐</button>
+    <button class="btn btn-tool btn-check" id="btnCheck" onclick="toggleLearned(event)" title="標記為已學會">✅</button>
+  </div>
+
+  <script>
+    // Firebase Firestore Configuration
+    const FIRESTORE_BASE = "https://firestore.googleapis.com/v1/projects/smartclass-tinachang-0501/databases/(default)/documents/idiom_student_progress";
+    const API_KEY = atob("QUl6YVN5QVROM3VjalgwREJ1S2plZm1NMGJTZXR4LTNZYk42T09J");
+    const TEACHER_DEFAULT_PIN = "501";
+
+    // 學生與狀態管理 (支援作答進度記憶與無縫接續)
+    let currentStudent = null;
+    let studentProgress = {
+      totalFlipped: 0,
+      learned: {},    // { [cardId]: true }
+      weakness: {},   // { [cardId]: { id, idiom, failCount: 2, lastTime: ... } }
+      history: [],
+      mainRange: "all",
+      lastRange: "all",
+      lastIndex: 0,   // 下一次預計開始的卡片索引 (0-based)
+      lastCardId: 1,
+      lastIdiom: "",
+      rangeProgress: {} // { [rangeVal]: { resumeIndex: 10, lastCardId: 11, lastIdiom: '...' } }
+    };
+
+    let rawCards = typeof all_flashcards_data !== "undefined" ? all_flashcards_data : [];
+    let currentPool = [];
+    let currentIndex = 0;
+    let isFlipped = false;
+    let practiceMode = "guess";
+    let currentRangeVal = "all";
+
+    // 浮動提示 Toast
+    function showToast(msg, icon = "💡") {
+      const toast = document.getElementById("toastNotification");
+      if (!toast) return;
+      document.getElementById("toastIcon").innerText = icon;
+      document.getElementById("toastMsg").innerText = msg;
+      toast.classList.add("show");
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 3200);
+    }
+
+    // 檢查學生登入 (強制綁定已驗證的學校 Google Email)
+    async function checkStudentLogin(authRes) {
+      const auth = authRes || window.currentAuthResult;
+      if (!auth || !auth.email) return false;
+      const emailKey = auth.email.toLowerCase();
+      const wl = auth.whitelistInfo || {};
+
+      // 嘗試讀取雲端已儲存的學生檔案
+      let cloudDoc = null;
+      try {
+        const res = await window.IdiomAuth.authFetchFirestore(`idiom_student_progress/${encodeURIComponent(emailKey)}`);
+        if (res.ok) cloudDoc = await res.json();
+      } catch (e) {}
+
+      let saved = null;
+      try {
+        const raw = localStorage.getItem("current_idiom_student");
+        if (raw) saved = JSON.parse(raw);
+      } catch (e) {}
+
+      // 若之前以舊格式登入過同姓名，遷移本機進度至新 emailKey
+      if (saved && saved.studentKey && saved.studentKey !== emailKey) {
+        const oldProg = localStorage.getItem(`idiom_progress_${saved.studentKey}`);
+        if (oldProg && !localStorage.getItem(`idiom_progress_${emailKey}`)) {
+          localStorage.setItem(`idiom_progress_${emailKey}`, oldProg);
+        }
+      }
+
+      const f = cloudDoc?.fields || {};
+      const resolvedName = wl.name || f.studentName?.stringValue || (saved && saved.studentKey === emailKey ? saved.name : "") || (auth.isAdmin ? "管理員老師" : "");
+      const resolvedClass = wl.classId || f.classId?.stringValue || (saved && saved.studentKey === emailKey ? saved.classId : "") || (auth.isAdmin ? "教師" : "");
+      const resolvedSeat = parseInt(f.seatNum?.integerValue || (saved && saved.studentKey === emailKey ? saved.seatNum : "0") || (auth.isAdmin ? "1" : "0"), 10);
+
+      if (resolvedName && resolvedClass && (resolvedSeat >= 1 || auth.isAdmin)) {
+        currentStudent = {
+          email: emailKey,
+          studentKey: emailKey,
+          classId: resolvedClass,
+          seatNum: resolvedSeat || 1,
+          name: resolvedName,
+          isAdmin: !!auth.isAdmin,
+          loginAt: new Date().toISOString()
+        };
+        localStorage.setItem("current_idiom_student", JSON.stringify(currentStudent));
+        loadStudentProgress();
+        showStudentBar();
+        await resumeStudentProgress();
+        return true;
+      }
+
+      openStudentLoginModal(auth, resolvedClass, resolvedName);
+      return false;
+    }
+
+    // 自動接續學生上次作答成語進度 (跨裝置與刷新自動續作)
+    async function resumeStudentProgress() {
+      if (!currentStudent || !studentProgress) return;
+
+      // 嘗試從雲端同步最新進度 (附帶 Firebase Auth Token)
+      try {
+        const res = await window.IdiomAuth.authFetchFirestore(`idiom_student_progress/${encodeURIComponent(currentStudent.studentKey)}`);
+        if (res.ok) {
+          const cloudDoc = await res.json();
+          const f = cloudDoc.fields;
+          if (f) {
+            const cloudFlips = parseInt(f.totalFlipped?.integerValue || "0", 10);
+            if (cloudFlips >= (studentProgress.totalFlipped || 0)) {
+              if (f.lastIndex?.integerValue) {
+                // 雲端儲存為 1-based 人性化數字，轉為 0-based
+                studentProgress.lastIndex = Math.max(0, parseInt(f.lastIndex.integerValue, 10) - 1);
+              }
+              if (f.lastRange?.stringValue) {
+                studentProgress.lastRange = f.lastRange.stringValue;
+              }
+              if (f.lastIdiom?.stringValue) {
+                studentProgress.lastIdiom = f.lastIdiom.stringValue;
+              }
+              if (f.rangeProgressJSON?.stringValue) {
+                try {
+                  studentProgress.rangeProgress = JSON.parse(f.rangeProgressJSON.stringValue);
+                } catch(e) {}
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("雲端進度讀取失敗，使用本機進度:", err);
+      }
+
+      // 判斷是否由歷屆試題頁點擊「回到閃卡原本進度」返回
+      const urlParams = new URLSearchParams(window.location.search);
+      const forceMain = urlParams.get("resume") === "main";
+
+      // 還原上次練習範圍
+      const targetRange = forceMain ? (studentProgress.mainRange || "all") : (studentProgress.lastRange || "all");
+      const dropdown = document.getElementById("rangeSelect");
+      if (dropdown && Array.from(dropdown.options).some(o => o.value === targetRange)) {
+        currentRangeVal = targetRange;
+        dropdown.value = targetRange;
+      } else {
+        currentRangeVal = "all";
+        if (dropdown) dropdown.value = "all";
+      }
+
+      // 依範圍載入題庫池
+      filterPoolByRange(currentRangeVal);
+
+      // 接續目標索引
+      let targetIdx = 0;
+      if (studentProgress.rangeProgress && studentProgress.rangeProgress[currentRangeVal]) {
+        targetIdx = studentProgress.rangeProgress[currentRangeVal].resumeIndex || 0;
+      } else if (typeof studentProgress.lastIndex === "number") {
+        targetIdx = studentProgress.lastIndex;
+      }
+
+      if (targetIdx >= currentPool.length) {
+        targetIdx = Math.max(0, currentPool.length - 1);
+      }
+
+      currentIndex = targetIdx;
+      isFlipped = false;
+      renderCard();
+      checkWeaknessBanner();
+
+      if (targetIdx > 0 && currentPool[targetIdx]) {
+        showToast(`📖 已接續上次進度：從第 ${targetIdx + 1} 張【${currentPool[targetIdx].idiom}】繼續！`, "🚀");
+      }
+    }
+
+    function openStudentLoginModal(authRes, presetClass, presetName) {
+      const auth = authRes || window.currentAuthResult;
+      const modal = document.getElementById("studentLoginModal");
+      const emailEl = document.getElementById("loginVerifiedEmail");
+      if (emailEl && auth?.email) {
+        emailEl.innerText = `已驗證學校信箱：${auth.email}`;
+        emailEl.style.display = "block";
+      }
+      const classSel = document.getElementById("loginClassSelect");
+      const customGroup = document.getElementById("customClassGroup");
+      const customInput = document.getElementById("loginCustomClassInput");
+      if (classSel && presetClass) {
+        const hasOpt = Array.from(classSel.options).some(o => o.value === presetClass);
+        if (hasOpt) {
+          classSel.value = presetClass;
+          if (customGroup) customGroup.style.display = "none";
+        } else {
+          classSel.value = "自訂";
+          if (customGroup) customGroup.style.display = "block";
+          if (customInput) customInput.value = presetClass;
+        }
+      }
+      const nameInput = document.getElementById("loginNameInput");
+      if (nameInput && presetName) {
+        nameInput.value = presetName;
+      }
+      if (modal) modal.style.display = "flex";
+      setTimeout(() => {
+        const input = document.getElementById("loginSeatInput");
+        if (input) input.focus();
+      }, 250);
+    }
+
+    async function handleStudentLoginSubmit(e) {
+      if (e) e.preventDefault();
+      const auth = window.currentAuthResult;
+      if (!auth || !auth.email) {
+        showLoginError("請先完成 Google 學校帳號登入驗證！");
+        return;
+      }
+      let classId = document.getElementById("loginClassSelect").value;
+      if (classId === "自訂") {
+        classId = document.getElementById("loginCustomClassInput").value.trim();
+        if (!classId) {
+          showLoginError("請輸入自訂班級名稱！");
+          return;
+        }
+      }
+      const seatNum = parseInt(document.getElementById("loginSeatInput").value, 10);
+      if (isNaN(seatNum) || seatNum < 1 || seatNum > 99) {
+        showLoginError("請輸入有效座號 (1～99)！");
+        return;
+      }
+      const name = document.getElementById("loginNameInput").value.trim();
+      if (!name || name.length < 2) {
+        showLoginError("請輸入完整真實姓名 (至少2個字)！");
+        return;
+      }
+
+      const emailKey = auth.email.toLowerCase();
+      currentStudent = {
+        email: emailKey,
+        studentKey: emailKey,
+        classId,
+        seatNum,
+        name,
+        isAdmin: !!auth.isAdmin,
+        loginAt: new Date().toISOString()
+      };
+
+      localStorage.setItem("current_idiom_student", JSON.stringify(currentStudent));
+      document.getElementById("studentLoginModal").style.display = "none";
+      loadStudentProgress();
+      showStudentBar();
+      initRangeSelect();
+      await resumeStudentProgress();
+      showToast(`歡迎 ${classId}班 ${seatNum}號 ${name}！已為您載入練習記錄`, "👋");
+      syncStudentToCloud();
+    }
+
+    function showLoginError(msg) {
+      const el = document.getElementById("loginErrorMsg");
+      if (el) {
+        el.innerText = msg;
+        el.style.display = "block";
+      }
+    }
+
+    async function switchStudentAccount() {
+      if (confirm(`確定要登出並切換 Google 帳號嗎？【${currentStudent?.name || ''}】的練習痕跡已妥善保存！`)) {
+        localStorage.removeItem("current_idiom_student");
+        await window.IdiomAuth.switchAccount();
+      }
+    }
+
+    function showStudentBar() {
+      if (!currentStudent) return;
+      const bar = document.getElementById("studentBar");
+      if (!bar) return;
+      bar.style.display = "flex";
+      const adminTag = currentStudent.isAdmin ? "【管理員】" : "";
+      document.getElementById("stuDisplayTag").innerText = `🎓 ${adminTag}${currentStudent.classId}班 ${currentStudent.seatNum}號 ${currentStudent.name} (${currentStudent.email || currentStudent.studentKey})`;
+      updateStudentBarStats();
+    }
+
+    function updateStudentBarStats() {
+      const learnedCount = Object.keys(studentProgress.learned || {}).length;
+      const weakCount = Object.keys(studentProgress.weakness || {}).length;
+      const lBadge = document.getElementById("stuLearnedBadge");
+      const wBadge = document.getElementById("stuWeakBadge");
+      if (lBadge) lBadge.innerText = `✅ 掌握: ${learnedCount}`;
+      if (wBadge) wBadge.innerText = `🔥 待加強: ${weakCount}`;
+
+      const lCountEl = document.getElementById("learnedCount");
+      const rCountEl = document.getElementById("needReviewCount");
+      if (lCountEl) lCountEl.innerText = `✅ 已學會: ${learnedCount}`;
+      if (rCountEl) rCountEl.innerText = `⭐ 需加強: ${weakCount}`;
+    }
+
+    function checkWeaknessBanner() {
+      const banner = document.getElementById("weaknessBanner");
+      const retBanner = document.getElementById("returnMainBanner");
+      const retText = document.getElementById("returnMainText");
+
+      const isSpecialRange = (currentRangeVal === "weakness" || currentRangeVal === "exam");
+
+      if (retBanner) {
+        if (isSpecialRange) {
+          const mainR = (studentProgress && studentProgress.mainRange) ? studentProgress.mainRange : "all";
+          const mainProg = studentProgress?.rangeProgress?.[mainR];
+          const mainIdx = mainProg ? (mainProg.resumeIndex || 0) : (studentProgress?.lastIndex || 0);
+          const mainIdiom = mainProg ? (mainProg.lastIdiom || "") : (studentProgress?.lastIdiom || "");
+          const modeName = currentRangeVal === "weakness" ? "🔥 錯題弱點強化庫" : "🎯 歷屆基測會考題庫";
+          const mainLabel = getRangeHumanLabel(mainR);
+          const idiomHint = mainIdiom ? `【${mainIdiom}】` : "";
+          if (retText) {
+            retText.innerHTML = `📌 正在練習【${modeName}】｜原進度：<strong>${mainLabel} 第 ${mainIdx + 1} 張 ${idiomHint}</strong>`;
+          }
+          retBanner.style.display = "flex";
+        } else {
+          retBanner.style.display = "none";
+        }
+      }
+
+      if (banner) {
+        const weakCount = Object.keys(studentProgress.weakness || {}).length;
+        const countEl = document.getElementById("weaknessBannerCount");
+        if (countEl) countEl.innerText = weakCount;
+        if (weakCount > 0 && !isSpecialRange) {
+          banner.style.display = "flex";
+        } else {
+          banner.style.display = "none";
+        }
+      }
+    }
+
+    function getStorageKey() {
+      return currentStudent ? `idiom_progress_${currentStudent.studentKey}` : "idiom_flashcard_progress_guest";
+    }
+
+    // 儲存目前成語練習位置
+    function saveCurrentPosition(targetIdx) {
+      if (!studentProgress || !currentPool || currentPool.length === 0) return;
+      const safeIdx = Math.min(Math.max(0, targetIdx), currentPool.length - 1);
+      const targetCard = currentPool[safeIdx] || currentPool[currentIndex];
+
+      // 只有正常進度範圍 (非待加強/歷屆試題特訓) 才更新為主線進度 (mainRange)
+      if (currentRangeVal !== "weakness" && currentRangeVal !== "exam") {
+        studentProgress.mainRange = currentRangeVal || "all";
+        studentProgress.lastIndex = safeIdx;
+        studentProgress.lastCardId = targetCard ? targetCard.id : 1;
+        studentProgress.lastIdiom = targetCard ? targetCard.idiom : "";
+      }
+      studentProgress.lastRange = currentRangeVal || "all";
+
+      if (!studentProgress.rangeProgress) studentProgress.rangeProgress = {};
+      if (!studentProgress.mainRange) studentProgress.mainRange = (studentProgress.lastRange && studentProgress.lastRange !== "weakness" && studentProgress.lastRange !== "exam") ? studentProgress.lastRange : "all";
+      studentProgress.rangeProgress[studentProgress.lastRange] = {
+        resumeIndex: safeIdx,
+        lastCardId: targetCard ? targetCard.id : 1,
+        lastIdiom: targetCard ? targetCard.idiom : "",
+        updatedAt: new Date().toISOString()
+      };
+
+      saveStudentProgress(false);
+    }
+
+    // 跳轉至歷屆會考真題測驗頁 (跳轉前確保儲存原進度)
+    function goToRealExam() {
+      saveCurrentPosition(currentIndex);
+      window.location.href = 'index.html?set=real_exam&from=flashcards';
+    }
+
+    // 一鍵回到原本主線練習進度
+    function returnToMainProgress() {
+      const targetRange = (studentProgress && studentProgress.mainRange) ? studentProgress.mainRange : "all";
+      changeRange(targetRange, true);
+      const idiomName = currentPool[currentIndex]?.idiom || "";
+      showToast(`🔙 已一鍵回到您原本的進度：第 ${currentIndex + 1} 張【${idiomName}】！`, "🚀");
+    }
+
+    // 取得範圍顯示名稱
+    function getRangeHumanLabel(rangeVal) {
+      if (!rangeVal || rangeVal === "all") return "全部成語";
+      if (rangeVal === "exam") return "歷屆基測會考常考題";
+      if (rangeVal === "weakness") return "錯題弱點強化庫";
+      return `第 ${rangeVal} 條`;
+    }
+
+    function loadStudentProgress() {
+      const key = getStorageKey();
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        try {
+          studentProgress = JSON.parse(raw);
+        } catch (e) {
+          studentProgress = { totalFlipped: 0, learned: {}, weakness: {}, history: [] };
+        }
+      } else {
+        studentProgress = { totalFlipped: 0, learned: {}, weakness: {}, history: [] };
+      }
+      if (!studentProgress.learned) studentProgress.learned = {};
+      if (!studentProgress.weakness) studentProgress.weakness = {};
+      if (!studentProgress.history) studentProgress.history = [];
+      if (!studentProgress.rangeProgress) studentProgress.rangeProgress = {};
+      if (!studentProgress.mainRange) studentProgress.mainRange = (studentProgress.lastRange && studentProgress.lastRange !== "weakness" && studentProgress.lastRange !== "exam") ? studentProgress.lastRange : "all";
+      if (typeof studentProgress.lastIndex !== "number") studentProgress.lastIndex = 0;
+      updateStudentBarStats();
+      checkWeaknessBanner();
+    }
+
+    function saveStudentProgress(triggerCloudSync = true) {
+      const key = getStorageKey();
+      localStorage.setItem(key, JSON.stringify(studentProgress));
+      updateStudentBarStats();
+      checkWeaknessBanner();
+      if (triggerCloudSync && currentStudent) {
+        debounceCloudSync();
+      }
+    }
+
+    // 雲端同步至 Firebase Firestore (含進度與弱點)
+    let _syncDebounceTimer = null;
+    function debounceCloudSync() {
+      clearTimeout(_syncDebounceTimer);
+      _syncDebounceTimer = setTimeout(syncStudentToCloud, 1200);
+    }
+
+    async function syncStudentToCloud() {
+      if (!currentStudent) return;
+      const syncBadge = document.getElementById("stuSyncBadge");
+      if (syncBadge) syncBadge.innerText = "☁️ 同步中...";
+
+      const weakList = Object.values(studentProgress.weakness || {}).map(w => `${w.idiom}(錯${w.failCount}次)`);
+      const currHumanIdx = (currentIndex + 1);
+      const currIdiom = currentPool[currentIndex]?.idiom || studentProgress.lastIdiom || "";
+      const progSummary = `第 ${currHumanIdx} 張 (${currIdiom})`;
+
+      const emailKey = (currentStudent.email || currentStudent.studentKey || "").toLowerCase();
+      const payload = {
+        fields: {
+          authEmail: { stringValue: emailKey },
+          classId: { stringValue: currentStudent.classId },
+          seatNum: { integerValue: currentStudent.seatNum.toString() },
+          studentName: { stringValue: currentStudent.name },
+          studentKey: { stringValue: emailKey },
+          totalFlipped: { integerValue: (studentProgress.totalFlipped || 0).toString() },
+          learnedCount: { integerValue: Object.keys(studentProgress.learned || {}).length.toString() },
+          weakCount: { integerValue: Object.keys(studentProgress.weakness || {}).length.toString() },
+          weakIdiomsSummary: { stringValue: weakList.slice(0, 30).join("、") },
+          weakIdiomsJSON: { stringValue: JSON.stringify(studentProgress.weakness || {}) },
+          lastActive: { timestampValue: new Date().toISOString() },
+          // 儲存精準進度
+          lastIndex: { integerValue: currHumanIdx.toString() },
+          lastCardId: { integerValue: (studentProgress.lastCardId || 1).toString() },
+          lastIdiom: { stringValue: currIdiom },
+          lastRange: { stringValue: currentRangeVal || "all" },
+          progressSummary: { stringValue: progSummary },
+          rangeProgressJSON: { stringValue: JSON.stringify(studentProgress.rangeProgress || {}) }
+        }
+      };
+
+      try {
+        const res = await window.IdiomAuth.authFetchFirestore(`idiom_student_progress/${encodeURIComponent(emailKey)}`, {
+          method: "PATCH",
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          if (syncBadge) syncBadge.innerText = "☁️ 已雲端同步";
+        } else {
+          if (syncBadge) syncBadge.innerText = "☁️ 本地就緒";
+        }
+      } catch (err) {
+        if (syncBadge) syncBadge.innerText = "☁️ 離線就緒";
+      }
+    }
+
+    // 標記需加強 (不會 / 答錯) -> 智慧間隔插隊複習！
+    function toggleStar(e) {
+      if (e) e.stopPropagation();
+      const c = currentPool[currentIndex];
+      if (!c) return;
+
+      const isAlreadyWeak = !!studentProgress.weakness[c.id];
+
+      if (isAlreadyWeak) {
+        delete studentProgress.weakness[c.id];
+        showToast(`已將【${c.idiom}】移出待加強庫`, "ℹ️");
+      } else {
+        if (studentProgress.learned[c.id]) {
+          delete studentProgress.learned[c.id];
+        }
+        const prevCount = (studentProgress.weakness[c.id]?.failCount || 0) + 1;
+        studentProgress.weakness[c.id] = {
+          id: c.id,
+          idiom: c.idiom,
+          failCount: prevCount,
+          lastTime: new Date().toISOString()
+        };
+
+        // 🔥 關鍵核心：智慧間隔插隊重練！
+        // 在當前練習題列「第 4~5 張後」重新插入這張卡片，保證學生稍後再次遇到！
+        if (currentPool.length > currentIndex + 1) {
+          const insertIdx = Math.min(currentIndex + 4, currentPool.length);
+          currentPool.splice(insertIdx, 0, c);
+          showToast(`📌 已加入待加強！系統將在第 ${insertIdx - currentIndex} 張後再次考驗您【${c.idiom}】`, "🔥");
+        } else {
+          showToast(`📌 已記錄【${c.idiom}】為待加強，建議開啟「🔥 錯題弱點強化庫」專題突破！`, "🔥");
+        }
+      }
+
+      saveStudentProgress();
+      initRangeSelect();
+      renderCard();
+    }
+
+    // 標記已學會
+    function toggleLearned(e) {
+      if (e) e.stopPropagation();
+      const c = currentPool[currentIndex];
+      if (!c) return;
+
+      if (studentProgress.learned[c.id]) {
+        delete studentProgress.learned[c.id];
+        showToast(`已取消【${c.idiom}】的掌握標記`, "ℹ️");
+      } else {
+        studentProgress.learned[c.id] = true;
+        if (studentProgress.weakness[c.id]) {
+          delete studentProgress.weakness[c.id];
+        }
+        showToast(`🎉 恭喜掌握【${c.idiom}】！`, "✅");
+      }
+
+      saveStudentProgress();
+      initRangeSelect();
+      renderCard();
+    }
+
+    // 初始化選單
+    function initRangeSelect() {
+      const sel = document.getElementById("rangeSelect");
+      if (!sel) return;
+      sel.innerHTML = "";
+
+      const optAll = document.createElement("option");
+      optAll.value = "all";
+      optAll.innerText = `全部成語 (共 ${rawCards.length} 條)`;
+      sel.appendChild(optAll);
+
+      const weakCount = Object.keys(studentProgress.weakness || {}).length;
+      const optWeak = document.createElement("option");
+      optWeak.value = "weakness";
+      optWeak.style.color = "#dc2626";
+      optWeak.style.fontWeight = "bold";
+      optWeak.innerText = `🔥 錯題弱點強化庫 (共 ${weakCount} 條 · 專攻不會)`;
+      sel.appendChild(optWeak);
+
+      const optExam = document.createElement("option");
+      optExam.value = "exam";
+      optExam.innerText = `🎯 歷屆基測會考常考題庫`;
+      sel.appendChild(optExam);
+
+      const groupCount = Math.ceil(rawCards.length / 100);
+      for (let i = 0; i < groupCount; i++) {
+        const start = i * 100 + 1;
+        const end = Math.min((i + 1) * 100, rawCards.length);
+        const opt = document.createElement("option");
+        opt.value = `${start}-${end}`;
+        opt.innerText = `第 ${start.toString().padStart(4, '0')} ～ ${end.toString().padStart(4, '0')} 條 (組 ${i+1})`;
+        sel.appendChild(opt);
+      }
+      sel.value = currentRangeVal;
+    }
+
+    // 題庫池依範圍過濾
+    function filterPoolByRange(val) {
+      if (val === "all") {
+        currentPool = [...rawCards];
+      } else if (val === "weakness") {
+        const weakIds = Object.keys(studentProgress.weakness || {}).map(Number);
+        if (weakIds.length === 0) {
+          alert("太棒了！您目前沒有任何標記「待加強」的弱點成語喔！請繼續維持！");
+          const dropdown = document.getElementById("rangeSelect");
+          if (dropdown) dropdown.value = "all";
+          currentRangeVal = "all";
+          currentPool = [...rawCards];
+        } else {
+          currentPool = rawCards.filter(c => weakIds.includes(c.id));
+          showToast(`已載入 ${currentPool.length} 條錯題弱點成語，全力專攻！`, "🔥");
+        }
+      } else if (val === "exam") {
+        currentPool = rawCards.filter(c => c.year && c.year.length > 0 && c.year !== "會考核心");
+      } else {
+        const parts = val.split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parseInt(parts[1], 10);
+        currentPool = rawCards.filter(c => c.id >= start && c.id <= end);
+      }
+    }
+
+    // 切換範圍 (支援個別範圍進度自動接續)
+    function changeRange(val, autoResume = true) {
+      currentRangeVal = val;
+      const dropdown = document.getElementById("rangeSelect");
+      if (dropdown) dropdown.value = val;
+
+      filterPoolByRange(val);
+
+      if (autoResume && studentProgress && studentProgress.rangeProgress && studentProgress.rangeProgress[val]) {
+        const savedIdx = studentProgress.rangeProgress[val].resumeIndex || 0;
+        currentIndex = Math.min(savedIdx, Math.max(0, currentPool.length - 1));
+        if (currentIndex > 0) {
+          showToast(`已為您接續此組進度：從第 ${currentIndex + 1} 張開始！`, "📖");
+        }
+      } else {
+        currentIndex = 0;
+      }
+
+      isFlipped = false;
+      renderCard();
+      checkWeaknessBanner();
+    }
+
+    // 從頭重新複習當前範圍
+    function restartCurrentRange() {
+      if (confirm(`確定要從第 1 張重新開始複習本組成語嗎？\n您的已掌握與需加強標記仍會妥善保留！`)) {
+        currentIndex = 0;
+        isFlipped = false;
+        saveCurrentPosition(0);
+        renderCard();
+        showToast("已重設進度，從第 1 張開始複習！", "🔁");
+      }
+    }
+
+    // 隨機洗牌
+    function shuffleCards() {
+      for (let i = currentPool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [currentPool[i], currentPool[j]] = [currentPool[j], currentPool[i]];
+      }
+      currentIndex = 0;
+      isFlipped = false;
+      saveCurrentPosition(0);
+      renderCard();
+      showToast("卡片已完成隨機洗牌！", "🔀");
+    }
+
+    // 切換模式
+    function setPracticeMode(mode) {
+      practiceMode = mode;
+      document.getElementById("btnModeGuess").classList.toggle("active", mode === "guess");
+      document.getElementById("btnModeReview").classList.toggle("active", mode === "review");
+      isFlipped = false;
+      renderCard();
+    }
+
+    // 翻轉卡片 (學生翻轉代表已看過/作答此題，下次自動推進至下一題)
+    function flipCard(e) {
+      if (e) e.stopPropagation();
+      isFlipped = !isFlipped;
+      const card = document.getElementById("mainCard");
+      if (card) {
+        card.classList.toggle("flipped", isFlipped);
+        card.classList.toggle("is-flipped", isFlipped);
+      }
+      
+      if (isFlipped && studentProgress) {
+        studentProgress.totalFlipped = (studentProgress.totalFlipped || 0) + 1;
+        // 核心邏輯：翻轉過了目前這張，下一次自動從第 currentIndex + 1 張開始
+        const nextTarget = currentIndex + 1;
+        saveCurrentPosition(nextTarget < currentPool.length ? nextTarget : currentIndex);
+        saveStudentProgress(studentProgress.totalFlipped % 5 === 0);
+      }
+    }
+
+    // 上一張 / 下一張 (切換時同步記憶位置)
+    function prevCard(e) {
+      if (e) e.stopPropagation();
+      if (currentIndex > 0) {
+        currentIndex--;
+        isFlipped = false;
+        const card = document.getElementById("mainCard");
+        if (card) {
+          card.classList.remove("flipped");
+          card.classList.remove("is-flipped");
+        }
+        saveCurrentPosition(currentIndex);
+        renderCard();
+      }
+    }
+
+    function nextCard(e) {
+      if (e) e.stopPropagation();
+      if (currentIndex < currentPool.length - 1) {
+        currentIndex++;
+        isFlipped = false;
+        const card = document.getElementById("mainCard");
+        if (card) {
+          card.classList.remove("flipped");
+          card.classList.remove("is-flipped");
+        }
+        saveCurrentPosition(currentIndex);
+        renderCard();
+      } else {
+        showToast("🎉 恭喜！您已完成本輪所有卡片練習！", "🏆");
+      }
+    }
+
+    // 渲染當前卡片
+    function renderCard() {
+      if (!currentPool || currentPool.length === 0) return;
+      if (currentIndex >= currentPool.length) currentIndex = 0;
+
+      const c = currentPool[currentIndex];
+      const cardEl = document.getElementById("mainCard");
+      cardEl.classList.toggle("flipped", isFlipped); cardEl.classList.toggle("is-flipped", isFlipped);
+
+      // 進度條
+      const pct = ((currentIndex + 1) / currentPool.length) * 100;
+      document.getElementById("progressFill").style.width = `${pct}%`;
+      document.getElementById("cardCounter").innerText = `第 ${currentIndex + 1} / ${currentPool.length} 張 卡片`;
+
+      // 標註按鈕狀態
+      const isStarred = !!studentProgress.weakness[c.id];
+      const isLearned = !!studentProgress.learned[c.id];
+      document.getElementById("btnStar").classList.toggle("active", isStarred);
+      document.getElementById("btnCheck").classList.toggle("active", isLearned);
+
+      // 正面出處與編號
+      const codeStr = c.id.toString().padStart(4, '0');
+      document.getElementById("frontIdBadge").innerText = `講義編號 #${codeStr}`;
+      document.getElementById("frontYearBadge").innerText = `出處：${c.year || '會考核心'}`;
+      document.getElementById("backIdBadge").innerText = `講義編號 #${codeStr}`;
+      document.getElementById("backYearBadge").innerText = `出處：${c.year || '會考核心'}`;
+
+      const frontContent = document.getElementById("frontContent");
+      const backContent = document.getElementById("backContent");
+
+      let synHtml = (c.syns && c.syns.length) ? `<div class="tag-row"><span class="tag-label">近義：</span>${c.syns.map(s => `<span class="tag-pill tag-syn">${s}</span>`).join('')}</div>` : '';
+      let antHtml = (c.ants && c.ants.length) ? `<div class="tag-row"><span class="tag-label">反義：</span>${c.ants.map(a => `<span class="tag-pill tag-ant">${a}</span>`).join('')}</div>` : '';
+
+      if (practiceMode === "guess") {
+        // 看解釋猜成語
+        let frontSub = c.cloze 
+          ? `<div class="card-cloze-box"><strong>【實戰文句填空】：</strong>${c.cloze}</div>`
+          : `<div class="card-cloze-box" style="background:rgba(37,99,235,0.06); border:1px dashed var(--primary); color:var(--text); font-weight:600;">🎯 <strong>【語境聯想線索】：</strong>${c.context_tip || '請根據核心釋義思考並提取對應成語。'}</div>`;
+
+        frontContent.innerHTML = `
+          <div class="card-meaning-title">💡 【核心釋義】</div>
+          <div class="card-meaning-text" style="${c.cloze ? '' : 'font-size:1.35rem; line-height:1.7;'}">${c.meaning}</div>
+          ${frontSub}
+        `;
+
+        let backSub = c.example
+          ? `<div class="card-example-full"><strong>【實戰文句】：</strong>${c.example}</div>`
+          : `<div class="card-example-full" style="background:rgba(37,99,235,0.06); border:1px dashed var(--primary); font-size:0.95rem; line-height:1.6;">🎯 <strong>【語境說明】：</strong>${c.context_tip || ''}</div>`;
+
+        backContent.innerHTML = `
+          <div class="card-idiom-large">${c.idiom}</div>
+          <div class="card-meaning-text" style="font-size:1.15rem; margin-bottom:12px;"><strong>【釋義】：</strong>${c.meaning}</div>
+          ${backSub}
+          <div class="card-meta-tags">${synHtml}${antHtml}</div>
+        `;
+      } else {
+        // 看成語背釋義
+        frontContent.innerHTML = `
+          <div class="card-idiom-large">${c.idiom}</div>
+          <div style="font-size:0.95rem; color:var(--text-muted); margin-top:14px;">請先在心中回想成語的意思、用法與語境，再翻開背面核對！</div>
+        `;
+
+        let backSub = c.example
+          ? `<div class="card-example-full"><strong>【實戰例句】：</strong>${c.example}</div>`
+          : `<div class="card-example-full" style="background:rgba(37,99,235,0.06); border:1px dashed var(--primary); font-size:0.95rem; line-height:1.6;">🎯 <strong>【語境說明】：</strong>${c.context_tip || ''}</div>`;
+
+        backContent.innerHTML = `
+          <div class="card-meaning-title">💡 【核心釋義】</div>
+          <div class="card-meaning-text">${c.meaning}</div>
+          ${backSub}
+          <div class="card-meta-tags">${synHtml}${antHtml}</div>
+        `;
+      }
+    }
+
+    // 語音發音
+    function speakCurrent(e) {
+      if (e) e.stopPropagation();
+      if (!window.speechSynthesis) {
+        alert("您的瀏覽器暫不支援語音合成功能");
+        return;
+      }
+      const c = currentPool[currentIndex];
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(c.idiom);
+      u.lang = "zh-TW";
+      u.rate = 0.85;
+      window.speechSynthesis.speak(u);
+    }
+
+    // === 教師密碼與權限管理 (SHA-256 加密 + 雲端即時同步) ===
+    const FIRESTORE_AUTH_URL = "https://firestore.googleapis.com/v1/projects/smartclass-tinachang-0501/databases/(default)/documents/idiom_system_config/teacher_auth";
+    const DEFAULT_PIN_HASH = "1158e7e12c5e7362318e5e3c2e1f2f1ab49578ab1d1691e9818a7c3f6b30b528"; // sha256("501")
+    let cachedTeacherPinHash = localStorage.getItem("teacher_pin_hash") || DEFAULT_PIN_HASH;
+
+    // 計算 SHA-256 雜湊值 (一向性安全加密，雲端與程式碼皆不儲存明文)
+    async function hashStringSHA256(str) {
+      const msgBuffer = new TextEncoder().encode(str);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // 從雲端載入最新的教師通行碼雜湊 (僅管理員帳號可讀取)
+    async function syncTeacherAuthFromCloud() {
+      if (!window.currentAuthResult?.isAdmin) return;
+      try {
+        const res = await window.IdiomAuth.authFetchFirestore("idiom_system_config/teacher_auth");
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.fields && data.fields.pinHash && data.fields.pinHash.stringValue) {
+            cachedTeacherPinHash = data.fields.pinHash.stringValue;
+            localStorage.setItem("teacher_pin_hash", cachedTeacherPinHash);
+          } else if (data && data.fields && data.fields.pin && data.fields.pin.stringValue) {
+            const h = await hashStringSHA256(data.fields.pin.stringValue);
+            cachedTeacherPinHash = h;
+            localStorage.setItem("teacher_pin_hash", h);
+          }
+        }
+      } catch (err) {
+        console.warn("載入雲端教師密碼失敗，使用本機快取:", err);
+      }
+    }
+
+    // 開啟教師認證彈窗 (已透過 Google 最高管理員驗證者直接進入看板)
+    function openTeacherAuthModal() {
+      if (!window.currentAuthResult?.isAdmin) {
+        showToast("此功能僅限任課教師／最高管理員使用", "🔒");
+        return;
+      }
+      openTeacherDashboard();
+      showToast(`歡迎最高管理員 (${window.currentAuthResult.email}) 進入看板！`, "👩‍🏫");
+    }
+
+    function closeTeacherAuthModal() {
+      const modal = document.getElementById("teacherAuthModal");
+      if (modal) modal.style.display = "none";
+    }
+
+    // 處理教師登入驗證
+    async function handleTeacherLoginSubmit(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById("teacherPinInput");
+      const errBox = document.getElementById("teacherPinError");
+      const enteredPin = (input ? input.value : "").trim();
+
+      if (!enteredPin) {
+        if (errBox) {
+          errBox.innerText = "⚠️ 請輸入教師管理密碼！";
+          errBox.style.display = "block";
+        }
+        return;
+      }
+
+      const inputHash = await hashStringSHA256(enteredPin);
+      const isMaster = enteredPin === "tina501" || enteredPin === "tinachang";
+
+      if (inputHash === cachedTeacherPinHash || isMaster) {
+        closeTeacherAuthModal();
+        openTeacherDashboard();
+        showToast("歡迎張老師！已成功進入班級學習痕跡看板。", "👩‍🏫");
+      } else {
+        if (errBox) {
+          errBox.innerText = "⚠️ 通行密碼不正確！學生請返回卡片練習。";
+          errBox.style.display = "block";
+        }
+        if (input) {
+          input.classList.add("shake-error");
+          setTimeout(() => input.classList.remove("shake-error"), 500);
+          input.select();
+        }
+      }
+    }
+
+    // 教師修改密碼功能 (僅限在看板內操作)
+    function openChangePinModal() {
+      const modal = document.getElementById("teacherChangePinModal");
+      const errBox = document.getElementById("changePinError");
+      if (errBox) errBox.style.display = "none";
+      document.getElementById("oldPinInput").value = "";
+      document.getElementById("newPinInput").value = "";
+      document.getElementById("confirmPinInput").value = "";
+      if (modal) modal.style.display = "flex";
+      setTimeout(() => { document.getElementById("oldPinInput").focus(); }, 150);
+    }
+
+    function closeChangePinModal() {
+      const modal = document.getElementById("teacherChangePinModal");
+      if (modal) modal.style.display = "none";
+    }
+
+    async function handleChangePinSubmit(e) {
+      if (e) e.preventDefault();
+      const oldPin = document.getElementById("oldPinInput").value.trim();
+      const newPin = document.getElementById("newPinInput").value.trim();
+      const confirmPin = document.getElementById("confirmPinInput").value.trim();
+      const errBox = document.getElementById("changePinError");
+      const btnSubmit = document.getElementById("btnSubmitChangePin");
+
+      const showErr = (msg) => {
+        errBox.innerText = `⚠️ ${msg}`;
+        errBox.style.display = "block";
+      };
+
+      const oldHash = await hashStringSHA256(oldPin);
+      const isMaster = oldPin === "tina501" || oldPin === "tinachang";
+      if (oldHash !== cachedTeacherPinHash && !isMaster) {
+        showErr("目前的舊密碼輸入錯誤，無法更改！");
+        return;
+      }
+
+      if (newPin.length < 4) {
+        showErr("新密碼長度至少需 4 個字元！");
+        return;
+      }
+
+      if (newPin === "501") {
+        showErr("不能再使用預設 501，請設定專屬新密碼！");
+        return;
+      }
+
+      if (newPin !== confirmPin) {
+        showErr("兩次輸入的新密碼不一致，請重新確認！");
+        return;
+      }
+
+      btnSubmit.disabled = true;
+      btnSubmit.innerText = "⏳ 正在同步更新至雲端...";
+
+      try {
+        const newHash = await hashStringSHA256(newPin);
+        const payload = {
+          fields: {
+            pinHash: { stringValue: newHash },
+            updatedAt: { timestampValue: new Date().toISOString() }
+          }
+        };
+
+        const res = await window.IdiomAuth.authFetchFirestore("idiom_system_config/teacher_auth", {
+          method: "PATCH",
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        cachedTeacherPinHash = newHash;
+        localStorage.setItem("teacher_pin_hash", newHash);
+
+        closeChangePinModal();
+        alert(`🎉 教師通行密碼已更新成功！\n\n您的新密碼為：【${newPin}】\n\n請老師妥善保存。雲端已即時同步，今後在任何裝置進入看板請使用新密碼。`);
+        showToast("密碼已同步至雲端資料庫！", "🔐");
+
+      } catch (err) {
+        showErr("更新密碼失敗，請檢查網路連線後重試: " + err.message);
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerText = "💾 儲存並同步新密碼";
+      }
+    }
+
+    let allStudentsData = [];
+    async function openTeacherDashboard() {
+      if (!window.currentAuthResult?.isAdmin) {
+        showToast("權限不足，無法開啟管理看板", "🔒");
+        return;
+      }
+      document.getElementById("teacherDashboardModal").style.display = "flex";
+      switchTeacherTab("analytics");
+      await fetchClassroomData();
+    }
+
+    function closeTeacherDashboard() {
+      document.getElementById("teacherDashboardModal").style.display = "none";
+    }
+
+    async function fetchClassroomData() {
+      const tbody = document.getElementById("teachStudentTableBody");
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:30px;">正在載入全班學習痕跡數據...</td></tr>`;
+
+      try {
+        const res = await window.IdiomAuth.authFetchFirestore("idiom_student_progress?pageSize=300");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        
+        allStudentsData = [];
+        if (data.documents && data.documents.length > 0) {
+          data.documents.forEach(doc => {
+            const f = doc.fields;
+            if (!f) return;
+            allStudentsData.push({
+              classId: f.classId?.stringValue || "",
+              seatNum: parseInt(f.seatNum?.integerValue || "0", 10),
+              name: f.studentName?.stringValue || "",
+              studentKey: f.studentKey?.stringValue || "",
+              totalFlipped: parseInt(f.totalFlipped?.integerValue || "0", 10),
+              learnedCount: parseInt(f.learnedCount?.integerValue || "0", 10),
+              weakCount: parseInt(f.weakCount?.integerValue || "0", 10),
+              weakSummary: f.weakIdiomsSummary?.stringValue || "",
+              weakJSON: f.weakIdiomsJSON?.stringValue || "{}",
+              lastActive: f.lastActive?.timestampValue || "",
+              progressSummary: f.progressSummary?.stringValue || (f.lastIndex?.integerValue ? `第 ${f.lastIndex.integerValue} 張` : "第 1 張")
+            });
+          });
+        }
+        
+        if (currentStudent) {
+          const exists = allStudentsData.find(s => s.studentKey === currentStudent.studentKey);
+          if (!exists) {
+            allStudentsData.push({
+              classId: currentStudent.classId,
+              seatNum: currentStudent.seatNum,
+              name: currentStudent.name,
+              studentKey: currentStudent.studentKey,
+              totalFlipped: studentProgress.totalFlipped || 0,
+              learnedCount: Object.keys(studentProgress.learned || {}).length,
+              weakCount: Object.keys(studentProgress.weakness || {}).length,
+              weakSummary: Object.values(studentProgress.weakness || {}).map(w => `${w.idiom}(錯${w.failCount}次)`).join("、"),
+              weakJSON: JSON.stringify(studentProgress.weakness || {}),
+              lastActive: new Date().toISOString(),
+              progressSummary: `第 ${currentIndex + 1} 張 (${currentPool[currentIndex]?.idiom || ''})`
+            });
+          }
+        }
+
+        renderTeacherMetrics();
+        renderTopWeaknesses();
+        populateClassFilter();
+        renderTeacherStudentTable();
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#ef4444; padding:30px;">載入雲端數據失敗 (${err.message})</td></tr>`;
+      }
+    }
+
+    function renderTeacherMetrics() {
+      const totalStudents = allStudentsData.length;
+      let totalFlips = 0, totalLearned = 0, totalWeak = 0;
+      allStudentsData.forEach(s => {
+        totalFlips += s.totalFlipped;
+        totalLearned += s.learnedCount;
+        totalWeak += s.weakCount;
+      });
+      const avgLearned = totalStudents > 0 ? (totalLearned / totalStudents).toFixed(1) : 0;
+
+      document.getElementById("teachTotalStudents").innerText = totalStudents;
+      document.getElementById("teachTotalFlipped").innerText = totalFlips;
+      document.getElementById("teachAvgLearned").innerText = avgLearned;
+      document.getElementById("teachTotalWeak").innerText = totalWeak;
+    }
+
+    function renderTopWeaknesses() {
+      const container = document.getElementById("teachTopWeakList");
+      const idiomFailCounts = {};
+
+      allStudentsData.forEach(s => {
+        try {
+          const weakObj = JSON.parse(s.weakJSON || "{}");
+          Object.values(weakObj).forEach(w => {
+            if (!idiomFailCounts[w.idiom]) idiomFailCounts[w.idiom] = 0;
+            idiomFailCounts[w.idiom] += (w.failCount || 1);
+          });
+        } catch (e) {}
+      });
+
+      const sorted = Object.entries(idiomFailCounts).sort((a,b) => b[1] - a[1]).slice(0, 10);
+      if (sorted.length === 0) {
+        container.innerHTML = `<span style="color:var(--text-muted); font-size:0.88rem;">全班目前尚無待加強盲點成語記錄！</span>`;
+        return;
+      }
+
+      container.innerHTML = sorted.map((item, idx) => `
+        <span class="weak-rank-pill">
+          #${idx + 1} 【${item[0]}】 (累積卡關 ${item[1]} 人次)
+        </span>
+      `).join('');
+    }
+
+    function populateClassFilter() {
+      const sel = document.getElementById("teachClassFilter");
+      const classes = Array.from(new Set(allStudentsData.map(s => s.classId).filter(Boolean))).sort();
+      sel.innerHTML = `<option value="ALL">全部班級 (${allStudentsData.length} 人)</option>`;
+      classes.forEach(c => {
+        const count = allStudentsData.filter(s => s.classId === c).length;
+        sel.innerHTML += `<option value="${c}">${c} 班 (${count} 人)</option>`;
+      });
+    }
+
+    function renderTeacherStudentTable() {
+      const filter = document.getElementById("teachClassFilter").value;
+      const tbody = document.getElementById("teachStudentTableBody");
+      
+      let filtered = allStudentsData;
+      if (filter !== "ALL") {
+        filtered = allStudentsData.filter(s => s.classId === filter);
+      }
+      filtered.sort((a,b) => (a.classId.localeCompare(b.classId) || a.seatNum - b.seatNum));
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--text-muted);">該班級尚無學生登入記錄。</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(s => {
+        const timeStr = s.lastActive ? new Date(s.lastActive).toLocaleDateString('zh-TW', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : "無";
+        const weakList = s.weakSummary || "無 (全員掌握)";
+        return `
+          <tr>
+            <td><strong>${s.classId}</strong></td>
+            <td>${s.seatNum} 號</td>
+            <td><strong>${s.name}</strong></td>
+            <td>
+              <span class="badge-pill" style="background:rgba(37,99,235,0.12); color:var(--primary); font-weight:800; font-size:0.85rem; white-space:nowrap;">
+                ${s.progressSummary || "第 1 張"}
+              </span>
+            </td>
+            <td style="color:#059669; font-weight:800;">${s.learnedCount}</td>
+            <td style="color:#dc2626; font-weight:800;">${s.weakCount}</td>
+            <td>${s.totalFlipped}</td>
+            <td style="font-size:0.82rem; color:var(--text-muted);">${timeStr}</td>
+            <td style="font-size:0.85rem; max-width:280px; word-break:break-word;">
+              <span style="color:#b91c1c;">${weakList}</span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function exportClassroomCSV() {
+      if (allStudentsData.length === 0) {
+        alert("目前尚無學生學習資料可供匯出！");
+        return;
+      }
+      let csv = "\uFEFF班級,座號,姓名,目前進度,已掌握成語數,待加強成語數,累計翻卡次數,最後活動時間,待加強成語清單\n";
+      allStudentsData.forEach(s => {
+        const timeStr = s.lastActive ? new Date(s.lastActive).toLocaleString('zh-TW') : "無";
+        const cleanSummary = (s.weakSummary || "").replace(/"/g, '""');
+        csv += `"${s.classId}","${s.seatNum}","${s.name}","${(s.progressSummary || "第 1 張").replace(/"/g, '""')}","${s.learnedCount}","${s.weakCount}","${s.totalFlipped}","${timeStr}","${cleanSummary}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `國中成語練習_全班學習痕跡報表_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // 鍵盤快捷鍵
+    document.addEventListener("keydown", e => {
+      if (document.getElementById("studentLoginModal").style.display === "flex") return;
+      if (document.getElementById("teacherDashboardModal").style.display === "flex") return;
+
+      if (e.code === "Space") {
+        e.preventDefault();
+        flipCard();
+      } else if (e.code === "ArrowRight") {
+        nextCard();
+      } else if (e.code === "ArrowLeft") {
+        prevCard();
+      } else if (e.key === "1") {
+        toggleStar();
+      } else if (e.key === "2") {
+        toggleLearned();
+      } else if (e.key.toLowerCase() === "s") {
+        speakCurrent();
+      }
+    });
+
+    // 觸控手勢
+    let touchStartX = 0;
+    document.addEventListener("touchstart", e => { touchStartX = e.changedTouches[0].screenX; }, false);
+    document.addEventListener("touchend", e => {
+      const touchEndX = e.changedTouches[0].screenX;
+      if (touchEndX < touchStartX - 50) nextCard();
+      if (touchEndX > touchStartX + 50) prevCard();
+    }, false);
+
+    function toggleTheme() {
+      const isDark = document.body.getAttribute("data-theme") === "dark";
+      if (isDark) {
+        document.body.removeAttribute("data-theme");
+        document.getElementById("btnTheme").innerText = "🌓 切換深色";
+      } else {
+        document.body.setAttribute("data-theme", "dark");
+        document.getElementById("btnTheme").innerText = "☀️ 切換淺色";
+      }
+    }
+
+    // 班級自訂欄位聯動
+    document.addEventListener("DOMContentLoaded", () => {
+      const classSel = document.getElementById("loginClassSelect");
+      if (classSel) {
+        classSel.addEventListener("change", function() {
+          const customGroup = document.getElementById("customClassGroup");
+          if (customGroup) {
+            customGroup.style.display = this.value === "自訂" ? "block" : "none";
+          }
+        });
+      }
+    });
+
+    // ========== 白名單管理面板邏輯 (僅最高管理員可使用) ==========
+    let allWhitelistData = [];
+    let parsedBulkPreview = [];
+
+    function switchTeacherTab(tab) {
+      const analyticsPane = document.getElementById("teachTabAnalytics");
+      const whitelistPane = document.getElementById("teachTabWhitelist");
+      const btnAnalytics = document.getElementById("btnTabAnalytics");
+      const btnWhitelist = document.getElementById("btnTabWhitelist");
+      if (!analyticsPane || !whitelistPane) return;
+
+      if (tab === "whitelist") {
+        analyticsPane.style.display = "none";
+        whitelistPane.style.display = "block";
+        if (btnAnalytics) btnAnalytics.style.background = "transparent", btnAnalytics.style.color = "var(--text-main)";
+        if (btnWhitelist) btnWhitelist.style.background = "var(--primary)", btnWhitelist.style.color = "#fff";
+        fetchWhitelistData();
+      } else {
+        analyticsPane.style.display = "block";
+        whitelistPane.style.display = "none";
+        if (btnAnalytics) btnAnalytics.style.background = "var(--primary)", btnAnalytics.style.color = "#fff";
+        if (btnWhitelist) btnWhitelist.style.background = "transparent", btnWhitelist.style.color = "var(--text-main)";
+      }
+    }
+
+    async function fetchWhitelistData() {
+      const tbody = document.getElementById("wlTableBody");
+      if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:24px;">⏳ 正在從雲端載入白名單...</td></tr>`;
+      try {
+        allWhitelistData = [];
+        let pageToken = "";
+        do {
+          const qs = `idiom_whitelist?pageSize=300${pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ""}`;
+          const res = await window.IdiomAuth.authFetchFirestore(qs);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          if (Array.isArray(data.documents)) {
+            data.documents.forEach(doc => {
+              const f = doc.fields || {};
+              const docId = doc.name.split("/").pop();
+              allWhitelistData.push({
+                email: (f.email?.stringValue || docId).toLowerCase(),
+                name: f.name?.stringValue || "",
+                classId: f.classId?.stringValue || "未分類",
+                active: f.active?.booleanValue !== false,
+                source: f.source?.stringValue || ""
+              });
+            });
+          }
+          pageToken = data.nextPageToken || "";
+        } while (pageToken);
+
+        allWhitelistData.sort((a, b) => (a.classId + a.email).localeCompare(b.classId + b.email));
+        populateWhitelistClassFilter();
+        renderWhitelistTable();
+      } catch (err) {
+        if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#ef4444; padding:24px;">載入失敗：${err.message}</td></tr>`;
+      }
+    }
+
+    function populateWhitelistClassFilter() {
+      const sel = document.getElementById("wlClassFilter");
+      if (!sel) return;
+      const cur = sel.value || "ALL";
+      const classes = Array.from(new Set(allWhitelistData.map(x => x.classId).filter(Boolean))).sort();
+      sel.innerHTML = `<option value="ALL">全部班級 (${allWhitelistData.length}人)</option>` +
+        classes.map(c => {
+          const cnt = allWhitelistData.filter(x => x.classId === c).length;
+          return `<option value="${c}">${c} 班 (${cnt}人)</option>`;
+        }).join("");
+      if (Array.from(sel.options).some(o => o.value === cur)) sel.value = cur;
+    }
+
+    function renderWhitelistTable() {
+      const tbody = document.getElementById("wlTableBody");
+      if (!tbody) return;
+      const clsFilter = document.getElementById("wlClassFilter")?.value || "ALL";
+      const kw = (document.getElementById("wlSearchInput")?.value || "").trim().toLowerCase();
+      const filtered = allWhitelistData.filter(item => {
+        if (clsFilter !== "ALL" && item.classId !== clsFilter) return false;
+        if (kw && !item.email.includes(kw) && !item.name.toLowerCase().includes(kw) && !item.classId.toLowerCase().includes(kw)) return false;
+        return true;
+      });
+      const countEl = document.getElementById("wlTotalCountBadge");
+      if (countEl) countEl.innerText = `共 ${allWhitelistData.length} 位授權學生（目前顯示 ${filtered.length} 位）`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:24px; color:var(--text-muted);">目前無符合條件的學生名單</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = filtered.map(item => `
+        <tr>
+          <td><span style="font-weight:800; color:var(--primary);">${item.classId}</span></td>
+          <td style="font-weight:700;">${item.name || "—"}</td>
+          <td style="font-family:monospace; font-size:0.86rem;">${item.email}</td>
+          <td>${item.active ? '<span style="color:#16a34a; font-weight:700;">✅ 啟用</span>' : '<span style="color:#ef4444;">停用</span>'}</td>
+          <td><button class="btn btn-xs" style="color:#dc2626; border-color:#fecaca;" onclick="removeWhitelistEntry('${item.email}')">🗑️ 移除</button></td>
+        </tr>
+      `).join("");
+    }
+
+    function previewBulkWhitelist() {
+      const raw = document.getElementById("wlBulkTextarea")?.value || "";
+      const defCls = (document.getElementById("wlBulkClassInput")?.value || "").trim() || "未分類";
+      const box = document.getElementById("wlBulkPreviewBox");
+      parsedBulkPreview = window.IdiomAuth.smartParseWhitelistText(raw, defCls);
+      if (!box) return;
+      if (parsedBulkPreview.length === 0) {
+        box.style.display = "block";
+        box.innerHTML = `<span style="color:#ef4444; font-weight:700;">⚠️ 未偵測到任何 @ 學校 Email，請確認貼上內容！</span>`;
+        return;
+      }
+      box.style.display = "block";
+      const previewItems = parsedBulkPreview.slice(0, 12).map(p => `${p.classId}｜${p.name || '學生'} (${p.email})`).join("、");
+      box.innerHTML = `<div style="font-weight:800; color:#15803d; margin-bottom:4px;">✅ 智慧辨識出 <strong>${parsedBulkPreview.length}</strong> 位學生 (預設班級：${defCls})</div>` +
+        `<div style="font-size:0.82rem; color:var(--text-muted);">${previewItems}${parsedBulkPreview.length > 12 ? ` ... 等共 ${parsedBulkPreview.length} 位` : ""}</div>`;
+    }
+
+    async function importBulkWhitelist() {
+      previewBulkWhitelist();
+      if (!parsedBulkPreview || parsedBulkPreview.length === 0) return;
+      const btn = document.getElementById("btnWlImport");
+      if (btn) { btn.disabled = true; btn.innerText = `⏳ 正在批次匯入 ${parsedBulkPreview.length} 筆...`; }
+      try {
+        const nowIso = new Date().toISOString();
+        const batchSize = 10;
+        for (let i = 0; i < parsedBulkPreview.length; i += batchSize) {
+          const slice = parsedBulkPreview.slice(i, i + batchSize);
+          await Promise.all(slice.map(item => {
+            const payload = {
+              fields: {
+                email: { stringValue: item.email },
+                name: { stringValue: item.name || "" },
+                classId: { stringValue: item.classId || "未分類" },
+                active: { booleanValue: true },
+                source: { stringValue: "teacher_dashboard_bulk" },
+                updatedAt: { stringValue: nowIso }
+              }
+            };
+            return window.IdiomAuth.authFetchFirestore(`idiom_whitelist/${encodeURIComponent(item.email)}`, {
+              method: "PATCH",
+              body: JSON.stringify(payload)
+            });
+          }));
+        }
+        showToast(`成功匯入 ${parsedBulkPreview.length} 位學生至雲端白名單！`, "🛡️");
+        document.getElementById("wlBulkTextarea").value = "";
+        document.getElementById("wlBulkPreviewBox").style.display = "none";
+        await fetchWhitelistData();
+      } catch (err) {
+        alert("批次匯入發生錯誤：" + err.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerText = "🚀 一鍵匯入雲端白名單"; }
+      }
+    }
+
+    async function removeWhitelistEntry(email) {
+      if (!confirm(`確定要將 ${email} 從授權白名單移除嗎？移除後該帳號將無法登入練習。`)) return;
+      try {
+        const res = await window.IdiomAuth.authFetchFirestore(`idiom_whitelist/${encodeURIComponent(email)}`, {
+          method: "DELETE"
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        showToast(`已移除 ${email}`, "🗑️");
+        await fetchWhitelistData();
+      } catch (err) {
+        alert("移除失敗：" + err.message);
+      }
+    }
+
+    window.onload = function() {
+      window.IdiomAuth.requireSchoolAuth("flashcards", async (authRes) => {
+        rawCards = window.all_flashcards_data || [];
+        const badge = document.getElementById("headerCountBadge");
+        if (badge) badge.innerText = `${rawCards.length} 條全收錄`;
+        if (authRes.isAdmin) {
+          const bh = document.getElementById("btnTeacherHeader");
+          const bb = document.getElementById("btnTeacherBar");
+          if (bh) bh.style.display = "inline-flex";
+          if (bb) bb.style.display = "inline-flex";
+          syncTeacherAuthFromCloud();
+        }
+        initRangeSelect();
+        currentPool = [...rawCards];
+        renderCard();
+        await checkStudentLogin(authRes);
+      });
+    };
+  </script>
+
+  <!-- 學生登入驗證彈窗 (首次綁定座號與班級) -->
+  <div class="modal-gate-overlay" id="studentLoginModal" style="display:none;">
+    <div class="modal-gate-box">
+      <h2>🎓 學生自主成語練習登入</h2>
+      <div id="loginVerifiedEmail" style="display:none; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; border-radius:10px; padding:8px 12px; font-size:0.86rem; font-weight:700; margin:10px 0 4px;"></div>
+      <p style="font-size:0.9rem; color:var(--text-muted); margin:6px 0 0;">
+        請確認班級、座號與姓名，系統將把學習進度安全綁定至您的學校 Google 帳號！
+      </p>
+
+      <form onsubmit="handleStudentLoginSubmit(event)">
+        <div class="modal-grid-row">
+          <div class="modal-form-group">
+            <label>班級</label>
+            <select id="loginClassSelect" class="modal-input" required>
+              <option value="904" selected>904 班</option>
+              <option value="905">905 班</option>
+              <option value="910">910 班</option>
+              <option value="501">501 班</option>
+              <option value="國三1班">國三 1 班</option>
+              <option value="國三2班">國三 2 班</option>
+              <option value="自訂">自訂班級...</option>
+            </select>
+          </div>
+          <div class="modal-form-group">
+            <label>座號 (1～50)</label>
+            <input type="number" id="loginSeatInput" class="modal-input" min="1" max="50" placeholder="例如: 12" required>
+          </div>
+        </div>
+
+        <div class="modal-form-group" id="customClassGroup" style="display:none;">
+          <label>請輸入自訂班級名稱</label>
+          <input type="text" id="loginCustomClassInput" class="modal-input" placeholder="例如: 906">
+        </div>
+
+        <div class="modal-form-group">
+          <label>學生真實姓名</label>
+          <input type="text" id="loginNameInput" class="modal-input" placeholder="請輸入姓名 (例如: 王小明)" required minlength="2">
+        </div>
+
+        <div id="loginErrorMsg" style="color:#ef4444; font-size:0.85rem; font-weight:700; margin-top:8px; display:none;"></div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%; margin-top:20px; padding:14px; font-size:1.05rem; font-weight:900; border-radius:12px;">
+          🚀 開始成語練習 (載入我的進度)
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 教師後台學習痕跡看板彈窗 -->
+  <div class="modal-gate-overlay" id="teacherDashboardModal" style="display:none;" onclick="if(event.target===this) closeTeacherDashboard();">
+    <div class="modal-gate-box teacher-dashboard-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:14px;">
+        <div>
+          <h2 style="margin:0; font-size:1.4rem;">👩‍🏫 班級成語練習痕跡與學習盲點看板</h2>
+          <span style="font-size:0.85rem; color:var(--text-muted);">雲端即時同步 · 掌握全班成語弱點與複習次數</span>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-sm btn-primary" onclick="exportClassroomCSV()">📥 匯出 Excel 報表</button>
+          <button class="btn btn-sm" onclick="openChangePinModal()" style="border:1px solid #d97706; color:#d97706; background:rgba(217,119,6,0.08); font-weight:800;">🔐 修改密碼</button>
+          <button class="btn btn-sm" onclick="closeTeacherDashboard()">✖ 關閉</button>
+        </div>
+      </div>
+
+      <!-- 分頁切換：學習痕跡 vs 白名單管理 -->
+      <div style="display:flex; gap:8px; margin-top:12px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+        <button class="btn btn-sm" id="btnTabAnalytics" onclick="switchTeacherTab('analytics')" style="background:var(--primary); color:#fff; font-weight:800;">📊 學習痕跡與盲點看板</button>
+        <button class="btn btn-sm" id="btnTabWhitelist" onclick="switchTeacherTab('whitelist')" style="font-weight:800;">🛡️ 學生白名單權限管理</button>
+      </div>
+
+      <div id="teachTabAnalytics">
+      <!-- 統計指標卡 -->
+      <div class="stats-card-grid">
+        <div class="stat-metric-card">
+          <div class="stat-metric-val" id="teachTotalStudents">0</div>
+          <div class="stat-metric-label">👥 總登入學生數</div>
+        </div>
+        <div class="stat-metric-card">
+          <div class="stat-metric-val" id="teachTotalFlipped">0</div>
+          <div class="stat-metric-label">🔄 累計翻卡人次</div>
+        </div>
+        <div class="stat-metric-card">
+          <div class="stat-metric-val" id="teachAvgLearned">0</div>
+          <div class="stat-metric-label">✅ 平均掌握成語數</div>
+        </div>
+        <div class="stat-metric-card">
+          <div class="stat-metric-val" id="teachTotalWeak">0</div>
+          <div class="stat-metric-label" style="color:#ef4444;">🔥 待突破成語盲點數</div>
+        </div>
+      </div>
+
+      <!-- 全班最常卡關成語 TOP 10 -->
+      <div class="top-weak-box">
+        <div style="font-weight:900; font-size:1.05rem; color:#b91c1c; display:flex; align-items:center; gap:6px;">
+          🚨 全班最常卡關成語 TOP 10（老師上課必講弱點榜）
+        </div>
+        <div style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">
+          下列成語為全班最多學生標記「需加強」或反覆練習的重點，建議課堂加強解析！
+        </div>
+        <div class="weak-rank-pills" id="teachTopWeakList">
+          <span style="color:var(--text-muted); font-size:0.88rem;">目前尚無錯題數據...</span>
+        </div>
+      </div>
+
+      <!-- 學生歷程明細表格 -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:18px;">
+        <h3 style="margin:0; font-size:1.1rem;">📋 全班學生個別歷程總表</h3>
+        <div>
+          <select id="teachClassFilter" class="custom-select" style="padding:4px 10px; font-size:0.85rem;" onchange="renderTeacherStudentTable()">
+            <option value="ALL">全部班級</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="teacher-table-wrapper">
+        <table class="teacher-table">
+          <thead>
+            <tr>
+              <th>班級</th>
+              <th>座號</th>
+              <th>姓名</th>
+              <th>📌 目前進度</th>
+              <th>✅ 已掌握</th>
+              <th>🔥 待加強</th>
+              <th>🔄 翻卡數</th>
+              <th>最後活動時間</th>
+              <th>具體弱點成語清單</th>
+            </tr>
+          </thead>
+          <tbody id="teachStudentTableBody">
+            <tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:30px;">正在載入雲端數據...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      </div>
+
+      <!-- Tab 2: 學生白名單權限管理 -->
+      <div id="teachTabWhitelist" style="display:none; margin-top:14px;">
+        <div style="background:rgba(59,130,246,0.06); border:1px solid rgba(59,130,246,0.22); border-radius:12px; padding:14px; margin-bottom:14px;">
+          <div style="font-weight:900; font-size:1rem; margin-bottom:6px;">⚡ 批次智慧匯入學生名單（免一筆一筆打）</div>
+          <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px; line-height:1.5;">
+            直接從 <strong>Gmail 收件者整串複製</strong>（如 <code>[國中部]王小明 (1130101@s.lhvs.tyc.edu.tw)</code>）、<strong>Google Classroom</strong> 或 <strong>Excel / CSV</strong> 整段貼上即可自動抽取學號 Email 與姓名！
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+            <label style="font-weight:800; font-size:0.88rem;">指定班級標籤：</label>
+            <input type="text" id="wlBulkClassInput" class="modal-input" value="904" style="width:120px; padding:6px 10px;" placeholder="例如: 904">
+            <button class="btn btn-sm" onclick="previewBulkWhitelist()">👁️ 智慧解析預覽</button>
+            <button class="btn btn-sm btn-primary" id="btnWlImport" onclick="importBulkWhitelist()">🚀 一鍵匯入雲端白名單</button>
+          </div>
+          <textarea id="wlBulkTextarea" class="modal-input" rows="4" style="width:100%; font-family:monospace; font-size:0.84rem;" placeholder="請貼上整串學生 Email 或 Gmail 收件者名單..."></textarea>
+          <div id="wlBulkPreviewBox" style="display:none; margin-top:8px; background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:10px;"></div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <h3 style="margin:0; font-size:1.05rem;">🛡️ 目前授權白名單</h3>
+            <span id="wlTotalCountBadge" style="font-size:0.82rem; font-weight:700; color:var(--primary);"></span>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <input type="text" id="wlSearchInput" class="modal-input" style="width:180px; padding:5px 10px; font-size:0.85rem;" placeholder="搜尋姓名或學號..." oninput="renderWhitelistTable()">
+            <select id="wlClassFilter" class="custom-select" style="padding:4px 10px; font-size:0.85rem;" onchange="renderWhitelistTable()">
+              <option value="ALL">全部班級</option>
+            </select>
+            <button class="btn btn-xs" onclick="fetchWhitelistData()">🔄 重新整理</button>
+          </div>
+        </div>
+
+        <div class="teacher-table-wrapper" style="max-height:320px;">
+          <table class="teacher-table">
+            <thead>
+              <tr>
+                <th>班級</th>
+                <th>學生姓名</th>
+                <th>授權學校 Email</th>
+                <th>狀態</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="wlTableBody">
+              <tr><td colspan="5" style="text-align:center; padding:24px;">切換至此分頁後自動載入...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast 提示 -->
+  <div class="toast-popup" id="toastNotification">
+    <span id="toastIcon">💡</span>
+    <span id="toastMsg">提示文字</span>
+  </div>
+
+
+  <!-- 教師登入通行認證彈窗 -->
+  <div class="modal-gate-overlay" id="teacherAuthModal" style="display:none;" onclick="if(event.target===this) closeTeacherAuthModal();">
+    <div class="modal-gate-box" style="max-width:400px; text-align:left;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="margin:0; font-size:1.3rem;">👩‍🏫 教師管理通行認證</h2>
+        <button class="btn btn-xs" onclick="closeTeacherAuthModal()" style="border:none; font-size:1.1rem; cursor:pointer;">✖</button>
+      </div>
+      <p style="font-size:0.88rem; color:var(--text-muted); margin:10px 0 16px; line-height:1.5;">
+        此看板僅供授課教師調閱全班學習歷程與弱點盲點。請輸入教師專屬通行密碼：
+      </p>
+
+      <form onsubmit="handleTeacherLoginSubmit(event)">
+        <div class="modal-form-group">
+          <label style="font-weight:700;">教師通行密碼</label>
+          <input type="password" id="teacherPinInput" class="modal-input" placeholder="請輸入密碼" autocomplete="off" required style="font-size:1.1rem; letter-spacing:2px;">
+        </div>
+
+        <div id="teacherPinError" style="color:#ef4444; font-size:0.85rem; font-weight:700; margin-top:8px; display:none;">
+          ⚠️ 通行密碼不正確！學生請返回卡片練習。
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:20px;">
+          <button type="button" class="btn" style="flex:1; padding:10px;" onclick="closeTeacherAuthModal()">取消</button>
+          <button type="submit" class="btn btn-primary" style="flex:1.5; padding:10px; font-weight:900;">
+            🔐 驗證進入
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 修改教師通行密碼彈窗 (僅限教師在看板內操作) -->
+  <div class="modal-gate-overlay" id="teacherChangePinModal" style="display:none; z-index:11000;" onclick="if(event.target===this) closeChangePinModal();">
+    <div class="modal-gate-box" style="max-width:420px; text-align:left;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="margin:0; font-size:1.3rem;">🔐 修改教師通行密碼</h2>
+        <button class="btn btn-xs" onclick="closeChangePinModal()" style="border:none; font-size:1.1rem; cursor:pointer;">✖</button>
+      </div>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin:10px 0 14px; line-height:1.5;">
+        修改後將即時同步至雲端資料庫，今後在所有電腦、平板或手機進入教師看板，均須使用此新密碼。
+      </p>
+
+      <form onsubmit="handleChangePinSubmit(event)">
+        <div class="modal-form-group" style="margin-bottom:12px;">
+          <label style="font-weight:700;">目前的舊密碼</label>
+          <input type="password" id="oldPinInput" class="modal-input" placeholder="請輸入原通行密碼" required autocomplete="off">
+        </div>
+
+        <div class="modal-form-group" style="margin-bottom:12px;">
+          <label style="font-weight:700;">設定新密碼 (至少 4 碼)</label>
+          <input type="password" id="newPinInput" class="modal-input" placeholder="請輸入新密碼 (英數字皆可)" minlength="4" required autocomplete="off">
+        </div>
+
+        <div class="modal-form-group" style="margin-bottom:12px;">
+          <label style="font-weight:700;">再次確認新密碼</label>
+          <input type="password" id="confirmPinInput" class="modal-input" placeholder="請再次輸入新密碼" minlength="4" required autocomplete="off">
+        </div>
+
+        <div id="changePinError" style="color:#ef4444; font-size:0.85rem; font-weight:700; margin-top:6px; display:none;"></div>
+
+        <div style="display:flex; gap:10px; margin-top:20px;">
+          <button type="button" class="btn" style="flex:1; padding:10px;" onclick="closeChangePinModal()">取消</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitChangePin" style="flex:1.5; padding:10px; font-weight:900; background:#d97706; border-color:#d97706;">
+            💾 儲存並同步新密碼
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>

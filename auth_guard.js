@@ -5,6 +5,28 @@
  * 最高管理員：taboogirl@mail.lhvs.tyc.edu.tw, tinachang19790501@gmail.com
  */
 (function () {
+  // ===== 登入環境修正（2026-11-17）=====
+  // 1) LINE 內建瀏覽器：自動加上 openExternalBrowser=1，讓 LINE 改用手機預設瀏覽器開啟
+  // 2) 只在 Firebase 官方網域登入：GitHub Pages / web.app 與 authDomain 不同網域，
+  //    iPhone Safari、新版 Chrome 會分割儲存空間，導致「missing initial state」錯誤
+  const CANONICAL_HOST = "smartclass-tinachang-0501.firebaseapp.com";
+  const CANONICAL_DIR = "/idiom/";
+  try {
+    const ua0 = navigator.userAgent || "";
+    const url0 = new URL(window.location.href);
+    if (/\bLine\//i.test(ua0) && url0.searchParams.get("openExternalBrowser") !== "1") {
+      url0.searchParams.set("openExternalBrowser", "1");
+      window.location.replace(url0.toString());
+      return;
+    }
+    if (url0.hostname !== CANONICAL_HOST && url0.hostname !== "localhost" && url0.hostname !== "127.0.0.1" && url0.protocol !== "file:") {
+      const page = url0.pathname.split("/").pop() || "flashcards.html";
+      url0.searchParams.delete("openExternalBrowser");
+      window.location.replace("https://" + CANONICAL_HOST + CANONICAL_DIR + page + url0.search + url0.hash);
+      return;
+    }
+  } catch (e) { console.warn("canonical redirect skipped:", e); }
+
   const FB_API_KEY = atob("QUl6YVN5QVROM3VjalgwREJ1S2plZm1NMGJTZXR4LTNZYk42T09J");
   const FIRESTORE_DOC_BASE = "https://firestore.googleapis.com/v1/projects/smartclass-tinachang-0501/databases/(default)/documents";
 

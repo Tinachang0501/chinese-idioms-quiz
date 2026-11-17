@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>成語小遊戲｜配對與例句搶答</title>
+  <style>
+    :root {
+      --primary: #2563eb; --purple: #7c3aed; --success: #16a34a; --success-bg: #dcfce7;
+      --danger: #dc2626; --danger-bg: #fee2e2; --bg: #f1f5f9; --card: #ffffff;
+      --text: #0f172a; --muted: #64748b; --border: #cbd5e1;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "Microsoft JhengHei", sans-serif; }
+    header { background: #fff; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+    .header-inner { max-width: 960px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    h1 { font-size: 1.15rem; margin: 0; font-weight: 900; }
+    .btn { border: 1px solid var(--border); background: #fff; color: var(--text); padding: 8px 14px; border-radius: 10px;
+      font-weight: 800; font-size: 0.9rem; cursor: pointer; }
+    .btn:hover { background: #f8fafc; }
+    .btn-primary { background: var(--primary); border-color: #1d4ed8; color: #fff; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-purple { background: var(--purple); border-color: #6d28d9; color: #fff; }
+    .btn-purple:hover { background: #6d28d9; }
+    main { max-width: 960px; margin: 0 auto; padding: 16px; }
+    .menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 8px; }
+    .mode-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 20px; cursor: pointer;
+      transition: transform .12s, box-shadow .12s; }
+    .mode-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -8px rgba(15,23,42,.25); }
+    .mode-card .icon { font-size: 2rem; }
+    .mode-card h2 { margin: 6px 0 4px; font-size: 1.15rem; }
+    .mode-card p { margin: 0; color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+    .settings { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .settings label { font-weight: 800; font-size: 0.88rem; }
+    select { padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.9rem; }
+    .hud { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .hud .stats { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill { background: #fff; border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; font-weight: 800; font-size: 0.88rem; }
+    .board { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .col { display: flex; flex-direction: column; gap: 10px; }
+    .tile { background: var(--card); border: 2px solid var(--border); border-radius: 14px; padding: 12px 14px; cursor: pointer;
+      min-height: 58px; display: flex; align-items: center; font-size: 0.95rem; line-height: 1.45; transition: all .12s; user-select: none; }
+    .tile.idiom { font-weight: 900; font-size: 1.05rem; justify-content: center; text-align: center; }
+    .tile:hover { border-color: #93c5fd; }
+    .tile.sel { border-color: var(--primary); background: #eff6ff; box-shadow: 0 0 0 3px #bfdbfe; }
+    .tile.ok { border-color: var(--success); background: var(--success-bg); cursor: default; opacity: .55; }
+    .tile.bad { border-color: var(--danger); background: var(--danger-bg); animation: shake .35s; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+    .quiz-box { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 22px; }
+    .quiz-q { font-size: 1.15rem; line-height: 1.7; font-weight: 700; margin-bottom: 16px; }
+    .quiz-q .blank { color: var(--primary); }
+    .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .opt { border: 2px solid var(--border); background: #fff; border-radius: 12px; padding: 14px; font-size: 1.05rem; font-weight: 900; cursor: pointer; }
+    .opt:hover { border-color: #93c5fd; }
+    .opt.ok { border-color: var(--success); background: var(--success-bg); }
+    .opt.bad { border-color: var(--danger); background: var(--danger-bg); }
+    .feedback { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: #f8fafc; border: 1px solid var(--border); line-height: 1.6; display: none; }
+    .result { text-align: center; background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 28px 20px; }
+    .result .big { font-size: 2.6rem; font-weight: 900; margin: 6px 0; }
+    .result ul { text-align: left; max-width: 560px; margin: 14px auto; padding-left: 20px; line-height: 1.7; color: #334155; }
+    .muted { color: var(--muted); }
+    .hidden { display: none !important; }
+    @media (max-width: 640px) {
+      .board { gap: 8px; } .tile { padding: 10px; font-size: 0.86rem; min-height: 52px; }
+      .tile.idiom { font-size: 0.95rem; } .opts { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="auth_guard.js?v=20261117_v6"></script>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>🎮 成語小遊戲</h1>
+      <div style="display:flex; gap:8px;">
+        <button class="btn" onclick="showMenu()">🏠 遊戲選單</button>
+        <button class="btn btn-primary" onclick="window.location.href='flashcards.html'">🎴 回閃卡</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- 遊戲選單 -->
+    <section id="menuView">
+      <div class="settings">
+        <label for="poolSelect">題目範圍</label>
+        <select id="poolSelect">
+          <option value="all">全部成語與格言</option>
+          <option value="exam">只出歷屆基測、會考出現過的</option>
+          <option value="idiom">只出四字成語</option>
+          <option value="saying">只出格言、俗諺</option>
+        </select>
+        <span class="muted" id="poolInfo"></span>
+      </div>
+      <div class="menu">
+        <div class="mode-card" onclick="startMatch(6)">
+          <div class="icon">🧩</div>
+          <h2>成語配對（6 組）</h2>
+          <p>左邊是成語，右邊是解釋，把意思相符的配成一對。越快、錯越少，分數越高。</p>
+        </div>
+        <div class="mode-card" onclick="startMatch(8)">
+          <div class="icon">🔥</div>
+          <h2>成語配對挑戰（8 組）</h2>
+          <p>組數更多、解釋更容易混淆，適合想挑戰自己的同學。</p>
+        </div>
+        <div class="mode-card" onclick="startQuiz()">
+          <div class="icon">⚡</div>
+          <h2>例句填空搶答（10 題）</h2>
+          <p>看例句選出空格中最恰當的成語，連續答對有連擊加分。答錯會顯示解釋。</p>
+        </div>
+      </div>
+      <p class="muted" id="bestInfo" style="margin-top:14px;"></p>
+    </section>
+
+    <!-- 配對遊戲 -->
+    <section id="matchView" class="hidden">
+      <div class="hud">
+        <div class="stats">
+          <span class="pill" id="mProgress">配對 0 / 6</span>
+          <span class="pill" id="mTime">⏱ 0 秒</span>
+          <span class="pill" id="mMiss">❌ 錯 0 次</span>
+        </div>
+        <button class="btn" onclick="startMatch(matchSize)">🔄 換一局</button>
+      </div>
+      <div class="board">
+        <div class="col" id="colIdioms"></div>
+        <div class="col" id="colMeanings"></div>
+      </div>
+    </section>
+
+    <!-- 填空搶答 -->
+    <section id="quizView" class="hidden">
+      <div class="hud">
+        <div class="stats">
+          <span class="pill" id="qProgress">第 1 / 10 題</span>
+          <span class="pill" id="qScore">得分 0</span>
+          <span class="pill" id="qStreak">🔥 連擊 0</span>
+        </div>
+      </div>
+      <div class="quiz-box">
+        <div class="quiz-q" id="qText"></div>
+        <div class="opts" id="qOpts"></div>
+        <div class="feedback" id="qFeedback"></div>
+        <div style="text-align:right; margin-top:14px;">
+          <button class="btn btn-primary hidden" id="qNext" onclick="nextQuestion()">下一題 ➜</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 結果 -->
+    <section id="resultView" class="hidden">
+      <div class="result">
+        <div id="rTitle" style="font-size:1.2rem; font-weight:900;"></div>
+        <div class="big" id="rScore"></div>
+        <div class="muted" id="rDetail"></div>
+        <ul id="rReview"></ul>
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px;">
+          <button class="btn btn-purple" id="rAgain">再玩一次</button>
+          <button class="btn" onclick="showMenu()">回遊戲選單</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ===== 題庫整理 =====
+    const TEMPLATE_HEADS = ["面對這場關鍵考核", "雨後的阿里山雲海翻騰", "那戶人家生活清貧", "王教授學貫中西，然而處世態度始終"];
+    let ALL = [];
+
+    function cleanIdiom(s) {
+      return (s || "").replace(/[（(][^）)]*[）)]/g, "").trim();
+    }
+    function cleanMeaning(m) {
+      if (!m) return "";
+      let s = m.replace(/\s+/g, "");
+      if (/\d|＝|=|VS/.test(s)) {
+        const cut = s.split(/。/)[0];
+        if (cut.length >= 4 && !/\d|＝|=/.test(cut)) s = cut; else return "";
+      }
+      s = s.replace(/。$/, "");
+      if (s.length < 3 || s.length > 46) return "";
+      return s;
+    }
+    function matchVariant(c) {
+      const e = c.example || "";
+      if (!e || TEMPLATE_HEADS.some(h => e.startsWith(h))) return "";
+      const vs = [c.idiom, cleanIdiom(c.idiom)].concat(String(c.idiom).split("、").map(cleanIdiom))
+        .filter(Boolean).sort((a, b) => b.length - a.length);
+      for (const v of vs) if (e.includes("「" + v + "」")) return v;
+      return "";
+    }
+    function goodExample(c) { return !!matchVariant(c); }
+    function buildPool(raw) {
+      ALL = raw.map(c => ({
+        id: c.id,
+        idiom: c.idiom,
+        show: cleanIdiom(c.idiom),
+        meaning: cleanMeaning(c.meaning),
+        example: c.example || "",
+        variant: matchVariant(c),
+        hasExample: goodExample(c),
+        exam: !!(c.year && c.year !== "會考核心" && /\d/.test(c.year)),
+        saying: /[，；]/.test(c.idiom) || cleanIdiom(c.idiom).length > 4
+      })).filter(c => c.show.length >= 2 && !/VS/.test(c.show) && c.meaning);
+    }
+    function currentPool() {
+      const v = document.getElementById("poolSelect").value;
+      let p = ALL;
+      if (v === "exam") p = ALL.filter(c => c.exam);
+      if (v === "idiom") p = ALL.filter(c => !c.saying && c.show.length === 4);
+      if (v === "saying") p = ALL.filter(c => c.saying);
+      return p;
+    }
+    function shuffle(a) {
+      const b = a.slice();
+      for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; }
+      return b;
+    }
+    function pickDistinct(pool, n) {
+      const seen = new Set(), out = [];
+      for (const c of shuffle(pool)) {
+        if (seen.has(c.show) || seen.has(c.meaning)) continue;
+        seen.add(c.show); seen.add(c.meaning); out.push(c);
+        if (out.length === n) break;
+      }
+      return out;
+    }
+
+    // ===== 畫面切換 =====
+    function showView(id) {
+      ["menuView", "matchView", "quizView", "resultView"].forEach(v => document.getElementById(v).classList.toggle("hidden", v !== id));
+      window.scrollTo(0, 0);
+    }
+    function showMenu() {
+      clearInterval(matchTimer);
+      updatePoolInfo();
+      showBest();
+      showView("menuView");
+    }
+    function updatePoolInfo() {
+      const p = currentPool();
+      document.getElementById("poolInfo").innerText = `可出題 ${p.length} 條`;
+    }
+    function readBest() {
+      try { return JSON.parse(localStorage.getItem("idiom_game_best") || "{}"); } catch (e) { return {}; }
+    }
+    function saveBest(key, val, higherIsBetter) {
+      try {
+        const b = readBest();
+        if (b[key] == null || (higherIsBetter ? val > b[key] : val < b[key])) { b[key] = val; localStorage.setItem("idiom_game_best", JSON.stringify(b)); return true; }
+      } catch (e) {}
+      return false;
+    }
+    function showBest() {
+      const b = readBest(), parts = [];
+      if (b.match6 != null) parts.push(`配對 6 組最高 ${b.match6} 分`);
+      if (b.match8 != null) parts.push(`配對 8 組最高 ${b.match8} 分`);
+      if (b.quiz != null) parts.push(`搶答最高 ${b.quiz} 分`);
+      document.getElementById("bestInfo").innerText = parts.length ? "🏆 你在這臺裝置上的最佳紀錄：" + parts.join("、") : "";
+    }
+
+    // ===== 配對遊戲 =====
+    let matchSize = 6, matchPairs = [], matchSel = null, matchDone = 0, matchMiss = 0, matchStart = 0, matchTimer = null, missed = [];
+    function startMatch(n) {
+      matchSize = n;
+      const pool = currentPool();
+      if (pool.length < n) { alert("這個範圍的題目不夠，請換一個題目範圍。"); return; }
+      matchPairs = pickDistinct(pool, n);
+      matchSel = null; matchDone = 0; matchMiss = 0; missed = [];
+      const ci = document.getElementById("colIdioms"), cm = document.getElementById("colMeanings");
+      ci.innerHTML = ""; cm.innerHTML = "";
+      matchPairs.forEach((c, i) => {
+        const t = document.createElement("div");
+        t.className = "tile idiom"; t.innerText = c.show; t.dataset.k = i; t.dataset.side = "L";
+        t.onclick = () => clickTile(t); ci.appendChild(t);
+      });
+      shuffle(matchPairs.map((c, i) => i)).forEach(i => {
+        const t = document.createElement("div");
+        t.className = "tile"; t.innerText = matchPairs[i].meaning; t.dataset.k = i; t.dataset.side = "R";
+        t.onclick = () => clickTile(t); cm.appendChild(t);
+      });
+      matchStart = Date.now();
+      clearInterval(matchTimer);
+      matchTimer = setInterval(updateMatchHud, 500);
+      updateMatchHud();
+      showView("matchView");
+    }
+    function updateMatchHud() {
+      document.getElementById("mProgress").innerText = `配對 ${matchDone} / ${matchSize}`;
+      document.getElementById("mTime").innerText = `⏱ ${Math.floor((Date.now() - matchStart) / 1000)} 秒`;
+      document.getElementById("mMiss").innerText = `❌ 錯 ${matchMiss} 次`;
+    }
+    function clickTile(t) {
+      if (t.classList.contains("ok")) return;
+      if (!matchSel) { matchSel = t; t.classList.add("sel"); return; }
+      if (matchSel === t) { t.classList.remove("sel"); matchSel = null; return; }
+      if (matchSel.dataset.side === t.dataset.side) { matchSel.classList.remove("sel"); matchSel = t; t.classList.add("sel"); return; }
+      const a = matchSel, b = t;
+      a.classList.remove("sel"); matchSel = null;
+      if (a.dataset.k === b.dataset.k) {
+        a.classList.add("ok"); b.classList.add("ok"); matchDone++;
+        updateMatchHud();
+        if (matchDone === matchSize) setTimeout(finishMatch, 350);
+      } else {
+        matchMiss++;
+        const L = a.dataset.side === "L" ? a : b;
+        const c = matchPairs[+L.dataset.k];
+        if (!missed.includes(c)) missed.push(c);
+        [a, b].forEach(x => { x.classList.add("bad"); setTimeout(() => x.classList.remove("bad"), 450); });
+        updateMatchHud();
+      }
+    }
+    function finishMatch() {
+      clearInterval(matchTimer);
+      const sec = Math.max(1, Math.round((Date.now() - matchStart) / 1000));
+      const score = Math.max(0, matchSize * 100 - matchMiss * 30 - Math.max(0, sec - matchSize * 5) * 2);
+      const isBest = saveBest("match" + matchSize, score, true);
+      document.getElementById("rTitle").innerText = matchMiss === 0 ? "🎉 全部配對成功，零失誤！" : "✅ 配對完成！";
+      document.getElementById("rScore").innerText = `${score} 分` + (isBest ? " 🏆" : "");
+      document.getElementById("rDetail").innerText = `用時 ${sec} 秒・錯 ${matchMiss} 次` + (isBest ? "・刷新最佳紀錄！" : "");
+      const ul = document.getElementById("rReview");
+      ul.innerHTML = missed.length ? "<b>這幾個再複習一下：</b>" : "";
+      missed.forEach(c => { const li = document.createElement("li"); li.innerHTML = `<b>${c.show}</b>：${c.meaning}`; ul.appendChild(li); });
+      document.getElementById("rAgain").onclick = () => startMatch(matchSize);
+      showView("resultView");
+    }
+
+    // ===== 例句填空搶答 =====
+    let quizItems = [], quizIdx = 0, quizScore = 0, quizStreak = 0, quizCorrect = 0, quizWrong = [];
+    const QUIZ_N = 10;
+    function startQuiz() {
+      const pool = currentPool().filter(c => c.hasExample);
+      if (pool.length < QUIZ_N + 3) { alert("這個範圍有例句的題目不夠，請換一個題目範圍。"); return; }
+      quizItems = pickDistinct(pool, QUIZ_N);
+      quizIdx = 0; quizScore = 0; quizStreak = 0; quizCorrect = 0; quizWrong = [];
+      showView("quizView");
+      renderQuestion();
+    }
+    function renderQuestion() {
+      const c = quizItems[quizIdx];
+      const sentence = c.example.replace("「" + (c.variant || c.idiom) + "」", "「<span class='blank'>＿＿＿＿</span>」");
+      document.getElementById("qText").innerHTML = sentence;
+      const sameLen = ALL.filter(x => x.show !== c.show && x.show.length === c.show.length);
+      const distract = pickDistinct(sameLen.length >= 3 ? sameLen : ALL.filter(x => x.show !== c.show), 3);
+      const opts = shuffle([c, ...distract]);
+      const box = document.getElementById("qOpts"); box.innerHTML = "";
+      opts.forEach(o => {
+        const b = document.createElement("button");
+        b.className = "opt"; b.innerText = o.show;
+        b.onclick = () => answer(b, o, c);
+        box.appendChild(b);
+      });
+      document.getElementById("qFeedback").style.display = "none";
+      document.getElementById("qNext").classList.add("hidden");
+      document.getElementById("qProgress").innerText = `第 ${quizIdx + 1} / ${QUIZ_N} 題`;
+      document.getElementById("qScore").innerText = `得分 ${quizScore}`;
+      document.getElementById("qStreak").innerText = `🔥 連擊 ${quizStreak}`;
+    }
+    function answer(btn, chosen, correct) {
+      const all = document.querySelectorAll("#qOpts .opt");
+      all.forEach(b => { b.disabled = true; if (b.innerText === correct.show) b.classList.add("ok"); });
+      const fb = document.getElementById("qFeedback");
+      if (chosen.show === correct.show) {
+        quizStreak++; quizCorrect++;
+        const gain = 100 + Math.min(quizStreak - 1, 5) * 20;
+        quizScore += gain;
+        fb.innerHTML = `✅ 答對了！+${gain} 分<br><b>${correct.show}</b>：${correct.meaning}`;
+      } else {
+        btn.classList.add("bad"); quizStreak = 0; quizWrong.push(correct);
+        fb.innerHTML = `❌ 正確答案是「<b>${correct.show}</b>」：${correct.meaning}<br><span class="muted">你選的「${chosen.show}」：${chosen.meaning}</span>`;
+      }
+      fb.style.display = "block";
+      document.getElementById("qScore").innerText = `得分 ${quizScore}`;
+      document.getElementById("qStreak").innerText = `🔥 連擊 ${quizStreak}`;
+      const nx = document.getElementById("qNext");
+      nx.innerText = quizIdx === QUIZ_N - 1 ? "看結果 ➜" : "下一題 ➜";
+      nx.classList.remove("hidden");
+    }
+    function nextQuestion() {
+      quizIdx++;
+      if (quizIdx < QUIZ_N) { renderQuestion(); return; }
+      const isBest = saveBest("quiz", quizScore, true);
+      document.getElementById("rTitle").innerText = quizCorrect === QUIZ_N ? "🎉 全對！太厲害了！" : "⚡ 搶答結束！";
+      document.getElementById("rScore").innerText = `${quizScore} 分` + (isBest ? " 🏆" : "");
+      document.getElementById("rDetail").innerText = `答對 ${quizCorrect} / ${QUIZ_N} 題` + (isBest ? "・刷新最佳紀錄！" : "");
+      const ul = document.getElementById("rReview");
+      ul.innerHTML = quizWrong.length ? "<b>答錯的成語：</b>" : "";
+      quizWrong.forEach(c => { const li = document.createElement("li"); li.innerHTML = `<b>${c.show}</b>：${c.meaning}`; ul.appendChild(li); });
+      document.getElementById("rAgain").onclick = startQuiz;
+      showView("resultView");
+    }
+
+    // ===== 啟動：沿用學校帳號登入與雲端題庫 =====
+    document.getElementById("poolSelect").addEventListener("change", updatePoolInfo);
+    window.onload = function () {
+      if (!window.IdiomAuth) return; // 轉址中
+      window.IdiomAuth.requireSchoolAuth("flashcards", () => {
+        buildPool(window.all_flashcards_data || []);
+        showMenu();
+      });
+    };
+  </script>
+</body>
+</html>

@@ -6,7 +6,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>國中成語 3538 條智能翻轉閃卡系統 (Flashcards)</title>
+  <title>國中成語智能翻轉閃卡系統 (Flashcards)</title>
   <style>
     :root {
       --primary: #2563eb;
@@ -926,18 +926,21 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="flashcards_data.js?v=20261111_v12"></script>
-  <script src="auth_guard.js?v=20261116_v5"></script>
+  <script src="auth_guard.js?v=20261117_v6"></script>
 </head>
 <body>
   <header>
     <div class="header-inner">
       <div class="brand-title">
-        <span class="brand-badge">3538 條全收錄</span>
+        <span class="brand-badge" id="brandCountBadge">成語全收錄</span>
         <h1>🎴 國中成語智能翻轉閃卡</h1>
       </div>
       <div class="nav-links">
         <button class="btn btn-primary" onclick="goToRealExam()" style="font-weight:900; background:#dc2626; border-color:#b91c1c; box-shadow:0 2px 6px rgba(220,38,38,0.35);">
           🎯 <span class="btn-text-full">前往歷屆會考真題測驗</span><span class="btn-text-mobile">會考真題</span>
+        </button>
+        <button class="btn btn-primary" onclick="window.location.href='games.html'" style="font-weight:900; background:#7c3aed; border-color:#6d28d9;">
+          🎮 <span class="btn-text-full">成語小遊戲</span><span class="btn-text-mobile">遊戲</span>
         </button>
         <button class="btn btn-outline-teacher" id="btnTeacherHeader" onclick="openTeacherAuthModal()" style="font-weight:800; display:none;">
           👩‍🏫 <span class="btn-text-full">老師看板</span><span class="btn-text-mobile">看板</span>
@@ -1607,10 +1610,11 @@
       optExam.innerText = `🎯 歷屆基測會考常考題庫`;
       sel.appendChild(optExam);
 
-      const groupCount = Math.ceil(rawCards.length / 100);
+      const maxId = rawCards.reduce((m, c) => Math.max(m, c.id || 0), 0);
+      const groupCount = Math.ceil(maxId / 100);
       for (let i = 0; i < groupCount; i++) {
         const start = i * 100 + 1;
-        const end = Math.min((i + 1) * 100, rawCards.length);
+        const end = Math.min((i + 1) * 100, maxId);
         const opt = document.createElement("option");
         opt.value = `${start}-${end}`;
         opt.innerText = `第 ${start.toString().padStart(4, '0')} ～ ${end.toString().padStart(4, '0')} 條 (組 ${i+1})`;
@@ -2433,6 +2437,8 @@
         rawCards = window.all_flashcards_data || [];
         const badge = document.getElementById("headerCountBadge");
         if (badge) badge.innerText = `${rawCards.length} 條全收錄`;
+        const bb2 = document.getElementById("brandCountBadge");
+        if (bb2) bb2.innerText = `${rawCards.length} 條全收錄`;
         if (authRes.isAdmin) {
           const bh = document.getElementById("btnTeacherHeader");
           const bb = document.getElementById("btnTeacherBar");

@@ -506,7 +506,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="questions_data.js?v=20261111_v12"></script>
-  <script src="auth_guard.js?v=20261116_v5"></script>
+  <script src="auth_guard.js?v=20261117_v6"></script>
 </head>
 <body>
 
@@ -696,7 +696,7 @@
       optExam.value = "real_exam";
       optExam.style.fontWeight = "bold";
       optExam.style.color = "#dc2626";
-      optExam.innerText = "🎯 歷屆基測會考成語真題特輯 (全153題原題精選)";
+      optExam.innerText = `🎯 歷屆基測會考成語真題特輯 (全${(all_sets_data.real_exam||[]).length}題原題精選)`;
       select.appendChild(optExam);
 
       const btnExamModal = document.createElement("button");
@@ -706,7 +706,7 @@
       btnExamModal.style.background = currentSet === 'real_exam' ? '#dc2626' : '#fee2e2';
       btnExamModal.style.borderColor = '#dc2626';
       btnExamModal.style.color = currentSet === 'real_exam' ? '#fff' : '#991b1b';
-      btnExamModal.innerHTML = `<strong>🎯 歷屆基測會考成語真題特輯 (全153題原題精選)</strong><div style="font-size:0.85rem; opacity:0.9;">90~115年歷屆基測、國中會考、特招原始成語考題一網打盡</div>`;
+      btnExamModal.innerHTML = `<strong>🎯 歷屆基測會考成語真題特輯 (全${(all_sets_data.real_exam||[]).length}題原題精選)</strong><div style="font-size:0.85rem; opacity:0.9;">90~115年歷屆基測、國中會考、特招原始成語考題一網打盡</div>`;
       btnExamModal.onclick = () => { selectSet('real_exam'); closeSetModal(); };
       modalGrid.appendChild(btnExamModal);
 
@@ -757,7 +757,7 @@
       const titleEl = document.getElementById("alllistTitle");
       if (titleEl) {
         if (currentSet === "real_exam") {
-          titleEl.innerText = `🎯 歷屆基測會考特招成語真題特輯（全套 153 題真實原題全覽）`;
+          titleEl.innerText = `🎯 歷屆基測會考特招成語真題特輯（全套 ${(all_sets_data.real_exam||[]).length} 題真實原題全覽）`;
         } else {
           const startNum = (currentSet - 1) * 100 + 1;
           const endNum = currentSet === 36 ? 3538 : currentSet * 100;

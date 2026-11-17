@@ -139,6 +139,23 @@
       align-items: center;
       gap: 8px;
     }
+    /* 詞語查詢 */
+    .search-box { display: flex; gap: 8px; align-items: center; }
+    .search-box input {
+      flex: 1; min-width: 0; padding: 9px 14px; border-radius: 10px;
+      border: 2px solid var(--primary); background: var(--card-bg); color: var(--text);
+      font-size: 1rem; font-weight: 700; outline: none;
+    }
+    .search-results { display: flex; flex-direction: column; gap: 10px; }
+    .search-hint { font-size: 0.88rem; color: var(--text-muted); font-weight: 700; }
+    .search-item {
+      background: var(--card-bg); border: 1px solid var(--border); border-left: 5px solid var(--primary);
+      border-radius: 12px; padding: 12px 14px; line-height: 1.65;
+    }
+    .search-item-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .search-item-idiom { font-size: 1.25rem; font-weight: 900; color: var(--primary); }
+    .search-item-year { font-size: 0.78rem; font-weight: 800; color: var(--text-muted); }
+    .search-item mark { background: #fde68a; color: inherit; padding: 0 1px; border-radius: 3px; }
     .custom-select {
       padding: 8px 12px;
       border-radius: 10px;
@@ -982,6 +999,14 @@
 
 
   <div class="controls-panel">
+    <!-- 詞語查詢 -->
+    <div class="search-box">
+      <input type="search" id="idiomSearchInput" placeholder="🔍 輸入詞語查詢解釋（例如：欲深谿壑）" autocomplete="off"
+             oninput="onIdiomSearch()" onkeydown="if(event.key==='Enter'){event.preventDefault();onIdiomSearch();}">
+      <button class="btn" onclick="clearIdiomSearch()">清除</button>
+    </div>
+    <div class="search-results" id="idiomSearchResults" style="display:none;"></div>
+
     <div class="controls-row">
       <!-- 範圍選單 -->
       <div class="select-group">
@@ -2430,6 +2455,98 @@
       } catch (err) {
         alert("移除失敗：" + err.message);
       }
+    }
+
+    // ===== 詞語查詢 =====
+    const SEARCH_VARIANTS = { "溪": "谿", "台": "臺", "裏": "裡", "着": "著", "群": "羣", "峰": "峯", "綫": "線", "眾": "衆" };
+    function searchNorm(s) {
+      return String(s || "")
+        .replace(/[\s，。、；：？！「」『』（）()\-—…．·,.;:?!]/g, "")
+        .replace(/./g, ch => SEARCH_VARIANTS[ch] || ch);
+    }
+    function escHtml(s) {
+      return String(s || "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+    }
+    function markHit(text, q) {
+      const safe = escHtml(text);
+      if (!q) return safe;
+      const qn = searchNorm(q);
+      const i = searchNorm(text).indexOf(qn);
+      if (i < 0 || searchNorm(text).length !== String(text).length) return safe;
+      return escHtml(text.slice(0, i)) + "<mark>" + escHtml(text.slice(i, i + qn.length)) + "</mark>" + escHtml(text.slice(i + qn.length));
+    }
+    let searchTimer = null;
+    function onIdiomSearch() {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(runIdiomSearch, 150);
+    }
+    function runIdiomSearch() {
+      const box = document.getElementById("idiomSearchResults");
+      const raw = (document.getElementById("idiomSearchInput").value || "").trim();
+      const q = searchNorm(raw);
+      if (!q) { box.style.display = "none"; box.innerHTML = ""; return; }
+      if (!rawCards || rawCards.length === 0) {
+        box.style.display = "flex";
+        box.innerHTML = `<div class="search-hint">成語資料還在載入中，請稍候再查詢。</div>`;
+        return;
+      }
+      // 先比對詞條本身；找不到時再比對解釋（至少兩個字）
+      const exact = [], partial = [], inMeaning = [];
+      rawCards.forEach(c => {
+        const names = String(c.idiom || "").split("、").map(searchNorm);
+        if (names.some(n => n === q)) exact.push(c);
+        else if (names.some(n => n.includes(q))) partial.push(c);
+        else if (q.length >= 2 && searchNorm(c.meaning).includes(q)) inMeaning.push(c);
+      });
+      let list = exact.concat(partial);
+      let note = "";
+      if (list.length === 0 && inMeaning.length) {
+        list = inMeaning;
+        note = `找不到詞條「${escHtml(raw)}」，以下是解釋中含有這幾個字的成語：`;
+      }
+      box.style.display = "flex";
+      if (list.length === 0) {
+        box.innerHTML = `<div class="search-hint">查無「${escHtml(raw)}」。請確認字是否正確，或只輸入其中幾個字再試試。</div>`;
+        return;
+      }
+      const total = list.length;
+      list = list.slice(0, 20);
+      const head = `<div class="search-hint">${note || `找到 ${total} 條相關成語`}${total > 20 ? "（只顯示前 20 條，可再多輸入幾個字縮小範圍）" : ""}</div>`;
+      box.innerHTML = head + list.map(c => {
+        const syn = (c.syns && c.syns.length) ? `<div><strong>近義：</strong>${c.syns.map(escHtml).join("、")}</div>` : "";
+        const ant = (c.ants && c.ants.length) ? `<div><strong>反義：</strong>${c.ants.map(escHtml).join("、")}</div>` : "";
+        const ex = c.example ? `<div><strong>例句：</strong>${escHtml(c.example)}</div>` : "";
+        return `<div class="search-item">
+          <div class="search-item-head">
+            <span class="search-item-idiom">${markHit(c.idiom, raw)}</span>
+            <span class="search-item-year">講義編號 #${String(c.id).padStart(4, "0")}｜出處：${escHtml(c.year || "會考核心")}</span>
+          </div>
+          <div><strong>解釋：</strong>${escHtml(c.meaning)}</div>
+          ${ex}${syn}${ant}
+          <div style="margin-top:6px;"><button class="btn btn-sm btn-primary" onclick="jumpToCard(${Number(c.id)})">📇 打開這張閃卡</button></div>
+        </div>`;
+      }).join("");
+    }
+    function clearIdiomSearch() {
+      const inp = document.getElementById("idiomSearchInput");
+      inp.value = "";
+      runIdiomSearch();
+      inp.focus();
+    }
+    function jumpToCard(id) {
+      const start = Math.floor((id - 1) / 100) * 100 + 1;
+      const maxId = rawCards.reduce((m, c) => Math.max(m, c.id || 0), 0);
+      const end = Math.min(start + 99, maxId);
+      changeRange(`${start}-${end}`, false);
+      const idx = currentPool.findIndex(c => c.id === id);
+      if (idx >= 0) {
+        currentIndex = idx;
+        isFlipped = false;
+        saveCurrentPosition(idx);
+        renderCard();
+      }
+      const card = document.getElementById("mainCard");
+      if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
     window.onload = function() {

@@ -713,7 +713,7 @@
       for (let i = 1; i <= 36; i++) {
         const startNum = (i - 1) * 100 + 1;
         const endNum = i === 36 ? 3538 : i * 100;
-        const optTitle = `卷${i}：第 ${startNum.toString().padStart(3, '0')} ～ ${endNum.toString().padStart(3, '0')} 題 (33 題)`;
+        const optTitle = `卷${i}：第 ${startNum.toString().padStart(3, '0')} ～ ${endNum.toString().padStart(3, '0')} 題 (${((all_sets_data[i] || all_sets_data[String(i)] || []).length) || 33} 題)`;
 
         // 下拉選單 option
         const opt = document.createElement("option");
@@ -761,7 +761,7 @@
         } else {
           const startNum = (currentSet - 1) * 100 + 1;
           const endNum = currentSet === 36 ? 3538 : currentSet * 100;
-          titleEl.innerText = `📋 卷${currentSet}（第 ${startNum} ～ ${endNum} 題大範圍 33 題全覽）`;
+          titleEl.innerText = `📋 卷${currentSet}（第 ${startNum} ～ ${endNum} 題大範圍 ${((all_sets_data[currentSet] || all_sets_data[String(currentSet)] || []).length) || 33} 題全覽）`;
         }
       }
 

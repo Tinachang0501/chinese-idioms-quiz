@@ -1178,6 +1178,48 @@
       return false;
     }
 
+    // 合併雲端的「不熟悉成語」與「會考題錯題紀錄」(練習題頁也會寫入)
+    function mergeCloudProgressMaps(f) {
+      if (!studentProgress.weakness) studentProgress.weakness = {};
+      try {
+        const cw = JSON.parse(f.weakIdiomsJSON?.stringValue || "{}");
+        Object.keys(cw).forEach(k => { if (!studentProgress.weakness[k]) studentProgress.weakness[k] = cw[k]; });
+      } catch (e) {}
+      try {
+        const qw = JSON.parse(f.quizWrongJSON?.stringValue || "{}");
+        studentProgress.quizWrong = studentProgress.quizWrong || {};
+        Object.keys(qw).forEach(k => {
+          const a = studentProgress.quizWrong[k], b = qw[k];
+          if (!a || (b.lastTime || "") > (a.lastTime || "")) studentProgress.quizWrong[k] = b;
+        });
+      } catch (e) {}
+      try {
+        const pw = JSON.parse(f.pendingWeakJSON?.stringValue || "{}");
+        studentProgress.pendingWeak = Object.assign({}, pw, studentProgress.pendingWeak || {});
+      } catch (e) {}
+    }
+
+    // 練習題頁以「成語名稱」加入的不熟悉成語，在此對應到閃卡編號
+    function resolvePendingWeak() {
+      const pend = studentProgress.pendingWeak || {};
+      const names = Object.keys(pend);
+      if (!names.length) return;
+      const norm = t => String(t || "").replace(/[\s，。、「」]/g, "");
+      names.forEach(name => {
+        const n = norm(name);
+        const card = rawCards.find(c => norm(c.idiom) === n) ||
+                     rawCards.find(c => String(c.idiom || "").split("、").some(p => norm(p) === n));
+        if (card) {
+          if (!studentProgress.weakness[card.id]) {
+            studentProgress.weakness[card.id] = { id: card.id, idiom: card.idiom, failCount: 1, lastTime: pend[name].lastTime || new Date().toISOString() };
+          }
+          if (studentProgress.learned) delete studentProgress.learned[card.id];
+          delete pend[name];
+        }
+      });
+      studentProgress.pendingWeak = pend;
+    }
+
     // 自動接續學生上次作答成語進度 (跨裝置與刷新自動續作)
     async function resumeStudentProgress() {
       if (!currentStudent || !studentProgress) return;
@@ -1189,6 +1231,7 @@
           const cloudDoc = await res.json();
           const f = cloudDoc.fields;
           if (f) {
+            mergeCloudProgressMaps(f);
             const cloudFlips = parseInt(f.totalFlipped?.integerValue || "0", 10);
             if (cloudFlips >= (studentProgress.totalFlipped || 0)) {
               if (f.lastIndex?.integerValue) {
@@ -1227,6 +1270,9 @@
         currentRangeVal = "all";
         if (dropdown) dropdown.value = "all";
       }
+
+      resolvePendingWeak();
+      saveStudentProgress(false);
 
       // 依範圍載入題庫池
       filterPoolByRange(currentRangeVal);
@@ -1531,7 +1577,10 @@
           lastIdiom: { stringValue: currIdiom },
           lastRange: { stringValue: currentRangeVal || "all" },
           progressSummary: { stringValue: progSummary },
-          rangeProgressJSON: { stringValue: JSON.stringify(studentProgress.rangeProgress || {}) }
+          rangeProgressJSON: { stringValue: JSON.stringify(studentProgress.rangeProgress || {}) },
+          quizWrongJSON: { stringValue: JSON.stringify(studentProgress.quizWrong || {}) },
+          quizWrongCount: { integerValue: Object.keys(studentProgress.quizWrong || {}).length.toString() },
+          pendingWeakJSON: { stringValue: JSON.stringify(studentProgress.pendingWeak || {}) }
         }
       };
 
@@ -2567,8 +2616,26 @@
         currentPool = [...rawCards];
         renderCard();
         await checkStudentLogin(authRes);
+        handleCardDeepLink();
       });
     };
+
+    // 由練習題頁「📇 打開閃卡」連結進入：?card=編號 或 ?q=成語
+    function handleCardDeepLink() {
+      const p = new URLSearchParams(window.location.search);
+      const cid = parseInt(p.get("card"), 10);
+      const qq = (p.get("q") || "").trim();
+      if (cid && rawCards.some(c => c.id === cid)) {
+        jumpToCard(cid);
+      } else if (qq) {
+        const inp = document.getElementById("idiomSearchInput");
+        if (inp) {
+          inp.value = qq;
+          runIdiomSearch();
+          inp.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+    }
   </script>
 
   <!-- 學生登入驗證彈窗 (首次綁定座號與班級) -->

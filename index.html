@@ -369,6 +369,9 @@
       color: var(--text);
     }
 
+    .proj-extra-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .proj-extra-actions .btn { text-decoration:none; }
+
     /* 導航按鈕列 */
     .projector-nav-bar {
       display: flex;
@@ -593,6 +596,7 @@
         <div class="projector-explanation" id="projExplanation">
           <div class="proj-ans-line" id="projAnsLine">🎯 正確答案：(B)</div>
           <div class="proj-analysis-text" id="projAnalysisText">解析內容...</div>
+          <div class="proj-extra-actions" id="projExtraActions"></div>
         </div>
       </div>
 
@@ -618,7 +622,7 @@
           <button class="btn btn-primary" onclick="handleLookup()">搜尋</button>
           <button class="btn" onclick="clearLookup()">清空</button>
           <label style="display:flex; align-items:center; gap:6px; font-weight:700; cursor:pointer;">
-            <input type="checkbox" id="searchAllSetsCheck" onchange="handleLookup()" checked> 搜尋全部 36 卷 (1188 題)
+            <input type="checkbox" id="searchAllSetsCheck" onchange="handleLookup()" checked> 搜尋全部 36 卷＋補充卷
           </label>
         </div>
         <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 6px;">當前卷題目快速查看：</div>
@@ -684,6 +688,232 @@
       return [];
     }
 
+    // ===== 補充卷 / 我的錯題卷 =====
+    function suppKeys() {
+      return Object.keys(all_sets_data || {}).filter(k => /^supp\d+$/.test(k))
+        .sort((a, b) => parseInt(a.slice(4)) - parseInt(b.slice(4)));
+    }
+    function setOrder() {
+      const keys = ["real_exam", "mywrong"];
+      for (let i = 1; i <= 36; i++) keys.push(i);
+      return keys.concat(suppKeys());
+    }
+    function setLabel(k) {
+      if (k === "real_exam") return "真題";
+      if (k === "mywrong") return "錯題卷";
+      if (/^supp\d+$/.test(String(k))) return `補充${String(k).slice(4)}`;
+      return `卷${k}`;
+    }
+
+    // 目前登入學生 (與閃卡共用同一份本機進度)
+    let quizAuth = null;
+    function getQuizStudent() {
+      try {
+        const raw = localStorage.getItem("current_idiom_student");
+        const stu = raw ? JSON.parse(raw) : null;
+        const email = (quizAuth?.email || "").toLowerCase();
+        if (stu && stu.studentKey && (!email || stu.studentKey === email)) return stu;
+        if (email) {
+          const wl = quizAuth.whitelistInfo || {};
+          return { email, studentKey: email, classId: wl.classId || "", seatNum: wl.seatNum || 1, name: wl.name || "", isAdmin: !!quizAuth.isAdmin };
+        }
+      } catch (e) {}
+      return null;
+    }
+    function loadQuizProgress(stu) {
+      let prog = null;
+      try { prog = JSON.parse(localStorage.getItem(`idiom_progress_${stu.studentKey}`) || "null"); } catch (e) {}
+      if (!prog) prog = { totalFlipped: 0, learned: {}, weakness: {}, history: [] };
+      if (!prog.weakness) prog.weakness = {};
+      if (!prog.learned) prog.learned = {};
+      if (!prog.quizWrong) prog.quizWrong = {};
+      if (!prog.pendingWeak) prog.pendingWeak = {};
+      return prog;
+    }
+    let _quizSyncTimer = null;
+    function saveQuizProgress(stu, prog) {
+      localStorage.setItem(`idiom_progress_${stu.studentKey}`, JSON.stringify(prog));
+      clearTimeout(_quizSyncTimer);
+      _quizSyncTimer = setTimeout(() => syncQuizProgressToCloud(stu, prog), 1200);
+    }
+    async function syncQuizProgressToCloud(stu, prog) {
+      const email = (stu.email || stu.studentKey || "").toLowerCase();
+      if (!email || !window.IdiomAuth) return;
+      const weakList = Object.values(prog.weakness || {}).map(w => `${w.idiom}(錯${w.failCount}次)`);
+      const fields = {
+        authEmail: { stringValue: email },
+        studentKey: { stringValue: email },
+        classId: { stringValue: String(stu.classId || "") },
+        seatNum: { integerValue: String(stu.seatNum || 1) },
+        studentName: { stringValue: String(stu.name || "") },
+        weakCount: { integerValue: String(Object.keys(prog.weakness || {}).length) },
+        weakIdiomsSummary: { stringValue: weakList.slice(0, 30).join("、") },
+        weakIdiomsJSON: { stringValue: JSON.stringify(prog.weakness || {}) },
+        quizWrongJSON: { stringValue: JSON.stringify(prog.quizWrong || {}) },
+        quizWrongCount: { integerValue: String(Object.keys(prog.quizWrong || {}).length) },
+        pendingWeakJSON: { stringValue: JSON.stringify(prog.pendingWeak || {}) },
+        lastActive: { timestampValue: new Date().toISOString() }
+      };
+      const mask = Object.keys(fields).map(f => `updateMask.fieldPaths=${f}`).join("&");
+      try {
+        await window.IdiomAuth.authFetchFirestore(`idiom_student_progress/${encodeURIComponent(email)}?${mask}`, {
+          method: "PATCH", body: JSON.stringify({ fields })
+        });
+      } catch (e) {}
+    }
+    // 開啟頁面時，把雲端的錯題紀錄與不熟悉成語併入本機 (跨裝置)
+    async function pullQuizProgressFromCloud() {
+      const stu = getQuizStudent();
+      if (!stu || !window.IdiomAuth) return;
+      try {
+        const res = await window.IdiomAuth.authFetchFirestore(`idiom_student_progress/${encodeURIComponent(stu.studentKey)}`);
+        if (!res.ok) return;
+        const f = (await res.json()).fields || {};
+        const prog = loadQuizProgress(stu);
+        const qw = JSON.parse(f.quizWrongJSON?.stringValue || "{}");
+        Object.keys(qw).forEach(k => {
+          const a = prog.quizWrong[k], b = qw[k];
+          if (!a || (b.lastTime || "") > (a.lastTime || "")) prog.quizWrong[k] = b;
+        });
+        const cw = JSON.parse(f.weakIdiomsJSON?.stringValue || "{}");
+        Object.keys(cw).forEach(k => { if (!prog.weakness[k]) prog.weakness[k] = cw[k]; });
+        localStorage.setItem(`idiom_progress_${stu.studentKey}`, JSON.stringify(prog));
+        refreshMyWrongCount();
+      } catch (e) {}
+    }
+
+    function questionKey(q, setKey) {
+      return `${q.origSet !== undefined ? q.origSet : setKey}|${q.origId !== undefined ? q.origId : q.id}`;
+    }
+    function buildMyWrongSet() {
+      const stu = getQuizStudent();
+      const list = [];
+      if (stu) {
+        const prog = loadQuizProgress(stu);
+        Object.values(prog.quizWrong)
+          .sort((a, b) => (b.wrongCount || 0) - (a.wrongCount || 0) || String(b.lastTime).localeCompare(String(a.lastTime)))
+          .forEach(w => {
+            const src = getQuestions(w.set) || [];
+            const q = src.find(x => String(x.id) === String(w.qid));
+            if (q) list.push({ ...q, origSet: w.set, origId: q.id, id: list.length + 1, wrongCount: w.wrongCount || 1, rightStreak: w.rightStreak || 0 });
+          });
+      }
+      all_sets_data.mywrong = list;
+      return list;
+    }
+    function myWrongCount() {
+      const stu = getQuizStudent();
+      return stu ? Object.keys(loadQuizProgress(stu).quizWrong).length : 0;
+    }
+    function refreshMyWrongCount() {
+      const n = myWrongCount();
+      const opt = document.querySelector('#setSelectDropdown option[value="mywrong"]');
+      if (opt) opt.innerText = `📝 我的錯題練習卷 (${n} 題)`;
+      const mb = document.getElementById("modalSetBtn_mywrong");
+      if (mb) mb.querySelector("strong").innerText = `📝 我的錯題練習卷 (${n} 題)`;
+    }
+
+    // 揭曉答案時記錄對錯：答錯加入錯題卷；錯題連續答對 2 次即移出
+    let answerRecordedFor = null;
+    const countedThisSession = new Set();
+    function recordQuizAnswer(q) {
+      if (selectedOptionIndex === null || selectedOptionIndex === undefined) return;
+      const stu = getQuizStudent();
+      if (!stu) return;
+      const key = questionKey(q, currentSet);
+      if (answerRecordedFor === key + "@" + currentQIndex) return;
+      answerRecordedFor = key + "@" + currentQIndex;
+      // 同一題在這次開啟頁面期間只記錄一次 (避免重複按揭曉就「刷」出錯題卷)
+      if (countedThisSession.has(key)) {
+        if (selectedOptionIndex === getAnsIndex(q) && loadQuizProgress(stu).quizWrong[key]) {
+          showQuizToast("這題剛剛已記錄過，下次重新開啟練習再答對才會累計");
+        }
+        return;
+      }
+      countedThisSession.add(key);
+      const prog = loadQuizProgress(stu);
+      const ok = selectedOptionIndex === getAnsIndex(q);
+      const [setK, qid] = key.split("|");
+      const now = new Date().toISOString();
+      if (!ok) {
+        const old = prog.quizWrong[key];
+        prog.quizWrong[key] = {
+          set: /^\d+$/.test(setK) ? parseInt(setK, 10) : setK, qid: parseInt(qid, 10),
+          idiom: q.idiom || "", code: q.code || "",
+          wrongCount: (old?.wrongCount || 0) + 1, rightStreak: 0, lastTime: now
+        };
+        showQuizToast(`📝 已收進「我的錯題練習卷」，之後可以再練一次！`);
+      } else if (prog.quizWrong[key]) {
+        const w = prog.quizWrong[key];
+        w.rightStreak = (w.rightStreak || 0) + 1; w.lastTime = now;
+        if (w.rightStreak >= 2) {
+          delete prog.quizWrong[key];
+          showQuizToast(`🎉 這題已連續答對 2 次，移出錯題卷！`);
+        } else {
+          showQuizToast(`👍 答對了！錯題再答對 1 次就能移出錯題卷`);
+        }
+      } else {
+        return;
+      }
+      saveQuizProgress(stu, prog);
+      refreshMyWrongCount();
+    }
+
+    function cardIdOf(q) {
+      return /^\d+$/.test(String(q.code || "")) ? parseInt(q.code, 10) : null;
+    }
+    function isWeakIdiom(q) {
+      const stu = getQuizStudent();
+      if (!stu || !q.idiom) return false;
+      const prog = loadQuizProgress(stu);
+      const id = cardIdOf(q);
+      return id ? !!prog.weakness[id] : !!prog.pendingWeak[q.idiom];
+    }
+    function toggleWeakFromQuiz() {
+      const q = getQuestions()[currentQIndex];
+      const stu = getQuizStudent();
+      if (!q || !stu) { showQuizToast("請先登入學生帳號才能收藏成語"); return; }
+      const prog = loadQuizProgress(stu);
+      const id = cardIdOf(q);
+      const now = new Date().toISOString();
+      if (isWeakIdiom(q)) {
+        if (id) delete prog.weakness[id]; else delete prog.pendingWeak[q.idiom];
+        showQuizToast(`已將【${q.idiom}】移出閃卡「不熟悉成語」`);
+      } else {
+        if (id) {
+          prog.weakness[id] = { id, idiom: q.idiom, failCount: (prog.weakness[id]?.failCount || 0) + 1, lastTime: now };
+          delete prog.learned[id];
+        } else {
+          prog.pendingWeak[q.idiom] = { idiom: q.idiom, lastTime: now };
+        }
+        showQuizToast(`⭐ 已把【${q.idiom}】加入閃卡「不熟悉成語」(錯題弱點強化庫)`);
+      }
+      saveQuizProgress(stu, prog);
+      renderExtraActions(q);
+    }
+    function renderExtraActions(q) {
+      const box = document.getElementById("projExtraActions");
+      if (!box) return;
+      if (!q || !q.idiom) { box.innerHTML = ""; return; }
+      const id = cardIdOf(q);
+      const link = id ? `flashcards.html?card=${id}` : `flashcards.html?q=${encodeURIComponent(q.idiom.split(/[、，]/)[0])}`;
+      const weak = isWeakIdiom(q);
+      box.innerHTML = `
+        <button class="btn ${weak ? "" : "btn-warning"}" onclick="toggleWeakFromQuiz()">${weak ? "✅ 已在閃卡不熟悉成語（點此移出）" : "⭐ 加入閃卡「不熟悉成語」"}</button>
+        <a class="btn" href="${link}" target="_blank" rel="noopener">📇 打開【${q.idiom}】閃卡看解釋</a>`;
+    }
+    function showQuizToast(msg) {
+      let t = document.getElementById("quizToast");
+      if (!t) {
+        t = document.createElement("div");
+        t.id = "quizToast";
+        t.style.cssText = "position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#1e293b;color:#fff;padding:12px 20px;border-radius:12px;font-weight:700;z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:90vw;text-align:center;transition:opacity .3s;";
+        document.body.appendChild(t);
+      }
+      t.innerText = msg; t.style.opacity = "1";
+      clearTimeout(t._h); t._h = setTimeout(() => { t.style.opacity = "0"; }, 2600);
+    }
+
     // 初始化 36 卷下拉選單與彈窗
     function initSetControls() {
       const select = document.getElementById("setSelectDropdown");
@@ -710,6 +940,21 @@
       btnExamModal.onclick = () => { selectSet('real_exam'); closeSetModal(); };
       modalGrid.appendChild(btnExamModal);
 
+      // 📝 我的錯題練習卷
+      const optWrong = document.createElement("option");
+      optWrong.value = "mywrong";
+      optWrong.style.fontWeight = "bold";
+      optWrong.innerText = `📝 我的錯題練習卷 (${myWrongCount()} 題)`;
+      select.appendChild(optWrong);
+      const btnWrong = document.createElement("button");
+      btnWrong.className = `modal-set-btn ${currentSet === 'mywrong' ? 'active' : ''}`;
+      btnWrong.id = "modalSetBtn_mywrong";
+      btnWrong.style.gridColumn = "1 / -1";
+      btnWrong.style.borderColor = "#7c3aed";
+      btnWrong.innerHTML = `<strong>📝 我的錯題練習卷 (${myWrongCount()} 題)</strong><div style="font-size:0.85rem; opacity:0.85;">自動收集你答錯的題目；同一題在不同次練習中連續答對 2 次就會移出</div>`;
+      btnWrong.onclick = () => { selectSet('mywrong'); closeSetModal(); };
+      modalGrid.appendChild(btnWrong);
+
       for (let i = 1; i <= 36; i++) {
         const startNum = (i - 1) * 100 + 1;
         const endNum = i === 36 ? 3538 : i * 100;
@@ -732,12 +977,34 @@
         };
         modalGrid.appendChild(btn);
       }
+
+      // 📚 補充卷
+      suppKeys().forEach(k => {
+        const n = k.slice(4);
+        const cnt = (all_sets_data[k] || []).length;
+        const opt = document.createElement("option");
+        opt.value = k;
+        opt.innerText = `📚 補充卷${n}：易混淆・格言俗諺・詞語運用・字形 (${cnt} 題)`;
+        select.appendChild(opt);
+        const btn = document.createElement("button");
+        btn.className = `modal-set-btn ${currentSet === k ? 'active' : ''}`;
+        btn.id = `modalSetBtn_${k}`;
+        btn.style.borderColor = "#0d9488";
+        btn.innerHTML = `<strong>📚 補充卷 ${n}</strong><div style="font-size:0.85rem; opacity:0.85;">${cnt} 題綜合練習</div>`;
+        btn.onclick = () => { selectSet(k); closeSetModal(); };
+        modalGrid.appendChild(btn);
+      });
     }
 
     // 切換試卷
     function selectSet(setNum) {
       if (setNum === "real_exam" || setNum === "0" || setNum === 0) {
         currentSet = "real_exam";
+      } else if (setNum === "mywrong") {
+        currentSet = "mywrong";
+        buildMyWrongSet();
+      } else if (/^supp\d+$/.test(String(setNum)) && all_sets_data[setNum]) {
+        currentSet = String(setNum);
       } else {
         let n = parseInt(setNum);
         if (isNaN(n) || n < 1) n = 1;
@@ -758,6 +1025,10 @@
       if (titleEl) {
         if (currentSet === "real_exam") {
           titleEl.innerText = `🎯 歷屆基測會考特招成語真題特輯（全套 ${(all_sets_data.real_exam||[]).length} 題真實原題全覽）`;
+        } else if (currentSet === "mywrong") {
+          titleEl.innerText = `📝 我的錯題練習卷（共 ${(all_sets_data.mywrong||[]).length} 題）`;
+        } else if (typeof currentSet === "string") {
+          titleEl.innerText = `📚 補充卷 ${currentSet.slice(4)}（${(all_sets_data[currentSet]||[]).length} 題全覽）`;
         } else {
           const startNum = (currentSet - 1) * 100 + 1;
           const endNum = currentSet === 36 ? 3538 : currentSet * 100;
@@ -766,21 +1037,28 @@
       }
 
       renderProjectorQuickBar();
-      loadProjectorQuestion(0);
+      if (currentSet === "mywrong" && getQuestions().length === 0) {
+        document.getElementById("projQBadge").innerText = "📝 我的錯題練習卷";
+        document.getElementById("projIdiomBadge").innerText = "目前沒有錯題";
+        document.getElementById("projStem").innerText = "目前沒有錯題 🎉\n在任何一卷選好答案後按「揭曉答案」，答錯的題目就會自動收進這裡。";
+        document.getElementById("projOptions").innerHTML = "";
+        document.getElementById("projExplanation").classList.remove("show");
+        document.getElementById("currentQDisplay").innerText = 0;
+        document.getElementById("totalQDisplay").innerText = 0;
+      } else {
+        loadProjectorQuestion(0);
+      }
       renderLookupQuickTags();
       handleLookup();
       renderAllList();
     }
 
     function changeSetDelta(delta) {
-      if (currentSet === "real_exam") {
-        selectSet(delta > 0 ? 1 : 36);
-      } else {
-        let next = currentSet + delta;
-        if (next < 1) next = 36;
-        if (next > 36) next = 1;
-        selectSet(next);
-      }
+      const order = setOrder();
+      let i = order.findIndex(k => String(k) === String(currentSet));
+      if (i < 0) i = 0;
+      i = (i + delta + order.length) % order.length;
+      selectSet(order[i]);
     }
 
     function openSetModal() {
@@ -842,9 +1120,16 @@
 
       const q = qs[idx];
       const totalQs = qs.length;
+      answerRecordedFor = null;
       if (currentSet === "real_exam") {
         document.getElementById("projQBadge").innerText = `🎯 歷屆真題 第 ${idx + 1} / ${totalQs} 題`;
         document.getElementById("projIdiomBadge").innerText = `真題出處：${q.year}`;
+      } else if (currentSet === "mywrong") {
+        document.getElementById("projQBadge").innerText = `📝 錯題 第 ${idx + 1} / ${totalQs} 題（原${setLabel(q.origSet)} 第 ${q.origId} 題・錯 ${q.wrongCount} 次）`;
+        document.getElementById("projIdiomBadge").innerText = `出處年份：${q.year}`;
+      } else if (typeof currentSet === "string") {
+        document.getElementById("projQBadge").innerText = `📚 補充卷${currentSet.slice(4)} 第 ${q.id} / ${totalQs} 題${q.cat ? "・" + q.cat : ""}`;
+        document.getElementById("projIdiomBadge").innerText = `出處年份：${q.year}`;
       } else {
         document.getElementById("projQBadge").innerText = `第 ${q.id} / ${totalQs} 題 (講義 #${q.code})`;
         document.getElementById("projIdiomBadge").innerText = `出處年份：${q.year}`;
@@ -901,6 +1186,7 @@
     // 點擊揭曉答案與詳解
     function toggleRevealAnswer() {
       const q = getQuestions()[currentQIndex];
+      if (!q) return;
       isRevealed = !isRevealed;
 
       const expBox = document.getElementById("projExplanation");
@@ -911,6 +1197,8 @@
         document.getElementById("projAnsLine").innerHTML = `🎯 正確答案：(${getAnsLetter(q)}) ｜ 📌 核心成語：【${q.idiom}】`;
         document.getElementById("projAnalysisText").innerHTML = `<strong>【解析與近反義】：</strong>${q.analysis}`;
         btn.innerText = "🔒 隱藏答案與詳解";
+        recordQuizAnswer(q);
+        renderExtraActions(q);
       } else {
         expBox.classList.remove("show");
         document.getElementById("projIdiomBadge").innerText = `講義索引：${q.year}`;
@@ -988,10 +1276,11 @@
       const searchAll = document.getElementById("searchAllSetsCheck").checked;
       let qsPool = [];
       if (searchAll) {
-        for (let s = 1; s <= 30; s++) {
+        for (let s = 1; s <= 36; s++) {
           const qs = getQuestions(s);
           qs.forEach(q => qsPool.push({ ...q, setNum: s }));
         }
+        suppKeys().forEach(k => getQuestions(k).forEach(q => qsPool.push({ ...q, setNum: k })));
       } else {
         const qs = getQuestions(currentSet);
         qs.forEach(q => qsPool.push({ ...q, setNum: currentSet }));
@@ -1022,7 +1311,7 @@
         card.className = "lookup-card";
         card.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
-            <strong style="color:var(--primary); font-size:1.15rem;">📌 [卷${q.setNum}] 第 ${q.id} 題（講義 #${q.code}）：【${q.idiom}】</strong>
+            <strong style="color:var(--primary); font-size:1.15rem;">📌 [${setLabel(q.setNum)}] 第 ${q.id} 題（講義 #${q.code}）：【${q.idiom}】</strong>
             <span style="font-size:0.85rem; background:var(--highlight); padding:3px 10px; border-radius:6px; font-weight:700;">${q.year}</span>
           </div>
           <div style="font-size:1.05rem; font-weight:600; margin-bottom:10px;">${q.stem}</div>
@@ -1129,6 +1418,8 @@
     window.onload = function() {
       window.IdiomAuth.requireSchoolAuth("questions", (authRes) => {
         all_sets_data = window.all_sets_data || {};
+        quizAuth = authRes;
+        pullQuizProgressFromCloud();
         const swBtn = document.getElementById("btnSwitchAccountQuiz");
         if (swBtn) swBtn.style.display = "inline-flex";
         initFlashcardReturnHint(authRes);
@@ -1137,6 +1428,8 @@
         const reqSet = urlParams.get("set");
         if (reqSet === "real_exam" || reqSet === "0") {
           selectSet("real_exam");
+        } else if (reqSet === "mywrong" || /^supp\d+$/.test(reqSet || "")) {
+          selectSet(reqSet);
         } else if (reqSet) {
           const n = parseInt(reqSet);
           if (!isNaN(n) && n >= 1 && n <= 36) {

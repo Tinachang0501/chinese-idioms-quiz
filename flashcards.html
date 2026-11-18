@@ -1155,7 +1155,12 @@
       const f = cloudDoc?.fields || {};
       const resolvedName = wl.name || f.studentName?.stringValue || (saved && saved.studentKey === emailKey ? saved.name : "") || (auth.isAdmin ? "管理員老師" : "");
       const resolvedClass = wl.classId || f.classId?.stringValue || (saved && saved.studentKey === emailKey ? saved.classId : "") || (auth.isAdmin ? "教師" : "");
-      const resolvedSeat = parseInt(f.seatNum?.integerValue || (saved && saved.studentKey === emailKey ? saved.seatNum : "0") || (auth.isAdmin ? "1" : "0"), 10);
+      // 座號必須是學生本人填過的：雲端有 seatConfirmed，或座號不是系統預設的 1 號
+      const cloudSeat = parseInt(f.seatNum?.integerValue || "0", 10);
+      const cloudSeatOk = cloudSeat >= 1 && (f.seatConfirmed?.booleanValue === true || cloudSeat !== 1);
+      const localSeat = (saved && saved.studentKey === emailKey && saved.seatConfirmed) ? parseInt(saved.seatNum, 10) : 0;
+      const wlSeat = parseInt(wl.seatNum || "0", 10);
+      const resolvedSeat = (cloudSeatOk ? cloudSeat : 0) || localSeat || wlSeat || (auth.isAdmin ? 1 : 0);
 
       if (resolvedName && resolvedClass && (resolvedSeat >= 1 || auth.isAdmin)) {
         currentStudent = {
@@ -1163,6 +1168,7 @@
           studentKey: emailKey,
           classId: resolvedClass,
           seatNum: resolvedSeat || 1,
+          seatConfirmed: resolvedSeat >= 1,
           name: resolvedName,
           isAdmin: !!auth.isAdmin,
           loginAt: new Date().toISOString()
@@ -1364,6 +1370,7 @@
         studentKey: emailKey,
         classId,
         seatNum,
+        seatConfirmed: true,
         name,
         isAdmin: !!auth.isAdmin,
         loginAt: new Date().toISOString()
@@ -1563,6 +1570,7 @@
           authEmail: { stringValue: emailKey },
           classId: { stringValue: currentStudent.classId },
           seatNum: { integerValue: currentStudent.seatNum.toString() },
+          seatConfirmed: { booleanValue: !!currentStudent.seatConfirmed },
           studentName: { stringValue: currentStudent.name },
           studentKey: { stringValue: emailKey },
           totalFlipped: { integerValue: (studentProgress.totalFlipped || 0).toString() },

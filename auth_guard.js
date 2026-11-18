@@ -135,7 +135,7 @@
           whitelistInfo: {
             name: f.name?.stringValue || user.displayName || "",
             classId: f.classId?.stringValue || "國中",
-            seatNum: parseInt(f.seatNum?.integerValue || "1", 10)
+            seatNum: parseInt(f.seatNum?.integerValue || "0", 10)  // 名單沒有座號時為 0，交由閃卡頁請學生填寫
           }
         };
       }
@@ -511,11 +511,20 @@
 
       // 驗證成功！
       const wl = authRes.whitelistInfo || {};
+      // 保留學生先前自己填的座號；名單沒有座號時不可預設為 1 號
+      let keptSeat = 0;
+      try {
+        const prev = JSON.parse(localStorage.getItem("current_idiom_student") || "null");
+        if (prev && prev.studentKey === authRes.email && prev.seatConfirmed && parseInt(prev.seatNum, 10) >= 1) {
+          keptSeat = parseInt(prev.seatNum, 10);
+        }
+      } catch (e) {}
       const verifiedStudent = {
         email: authRes.email,
         studentKey: authRes.email,
         classId: wl.classId || (authRes.isAdmin ? "教師" : "國中"),
-        seatNum: wl.seatNum || 1,
+        seatNum: wl.seatNum || keptSeat || 0,
+        seatConfirmed: !!(wl.seatNum || keptSeat),
         name: wl.name || authRes.email.split("@")[0],
         isAdmin: !!authRes.isAdmin,
         loginAt: new Date().toISOString()

@@ -715,7 +715,7 @@
         if (stu && stu.studentKey && (!email || stu.studentKey === email)) return stu;
         if (email) {
           const wl = quizAuth.whitelistInfo || {};
-          return { email, studentKey: email, classId: wl.classId || "", seatNum: wl.seatNum || 1, name: wl.name || "", isAdmin: !!quizAuth.isAdmin };
+          return { email, studentKey: email, classId: wl.classId || "", seatNum: wl.seatNum || 0, name: wl.name || "", isAdmin: !!quizAuth.isAdmin };
         }
       } catch (e) {}
       return null;
@@ -743,9 +743,6 @@
       const fields = {
         authEmail: { stringValue: email },
         studentKey: { stringValue: email },
-        classId: { stringValue: String(stu.classId || "") },
-        seatNum: { integerValue: String(stu.seatNum || 1) },
-        studentName: { stringValue: String(stu.name || "") },
         weakCount: { integerValue: String(Object.keys(prog.weakness || {}).length) },
         weakIdiomsSummary: { stringValue: weakList.slice(0, 30).join("、") },
         weakIdiomsJSON: { stringValue: JSON.stringify(prog.weakness || {}) },

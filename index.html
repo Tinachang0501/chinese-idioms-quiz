@@ -555,6 +555,7 @@
         </div>
         <button class="btn btn-set-nav" onclick="changeSetDelta(1)">下一卷 ➡️</button>
         <button class="btn btn-primary btn-set-nav" onclick="openSetModal()">📚 36卷快速總覽</button>
+        <button class="btn btn-set-nav" id="btnMyWrongBook" onclick="selectSet('mywrong'); switchMode('projector');" style="background:linear-gradient(135deg,#7c3aed,#6d28d9); color:#fff; border-color:#6d28d9; font-weight:900;">📝 我的錯題本 (<span id="myWrongBadge">0</span>)</button>
       </div>
 
       <!-- 模式切換 -->
@@ -805,29 +806,22 @@
     function refreshMyWrongCount() {
       const n = myWrongCount();
       const opt = document.querySelector('#setSelectDropdown option[value="mywrong"]');
-      if (opt) opt.innerText = `📝 我的錯題練習卷 (${n} 題)`;
+      if (opt) opt.innerText = `📝 我的錯題本 (${n} 題)`;
       const mb = document.getElementById("modalSetBtn_mywrong");
-      if (mb) mb.querySelector("strong").innerText = `📝 我的錯題練習卷 (${n} 題)`;
+      if (mb) mb.querySelector("strong").innerText = `📝 我的錯題本 (${n} 題)`;
+      const badge = document.getElementById("myWrongBadge");
+      if (badge) badge.innerText = n;
     }
 
     // 揭曉答案時記錄對錯：答錯加入錯題卷；錯題連續答對 2 次即移出
     let answerRecordedFor = null;
-    const countedThisSession = new Set();
     function recordQuizAnswer(q) {
       if (selectedOptionIndex === null || selectedOptionIndex === undefined) return;
       const stu = getQuizStudent();
       if (!stu) return;
       const key = questionKey(q, currentSet);
-      if (answerRecordedFor === key + "@" + currentQIndex) return;
+      if (answerRecordedFor === key + "@" + currentQIndex) return; // 同一次作答只記一次
       answerRecordedFor = key + "@" + currentQIndex;
-      // 同一題在這次開啟頁面期間只記錄一次 (避免重複按揭曉就「刷」出錯題卷)
-      if (countedThisSession.has(key)) {
-        if (selectedOptionIndex === getAnsIndex(q) && loadQuizProgress(stu).quizWrong[key]) {
-          showQuizToast("這題剛剛已記錄過，下次重新開啟練習再答對才會累計");
-        }
-        return;
-      }
-      countedThisSession.add(key);
       const prog = loadQuizProgress(stu);
       const ok = selectedOptionIndex === getAnsIndex(q);
       const [setK, qid] = key.split("|");
@@ -837,23 +831,36 @@
         prog.quizWrong[key] = {
           set: /^\d+$/.test(setK) ? parseInt(setK, 10) : setK, qid: parseInt(qid, 10),
           idiom: q.idiom || "", code: q.code || "",
-          wrongCount: (old?.wrongCount || 0) + 1, rightStreak: 0, lastTime: now
+          wrongCount: (old?.wrongCount || 0) + 1, rightStreak: 0,
+          firstTime: old?.firstTime || now, lastTime: now, lastRight: old?.lastRight || ""
         };
-        showQuizToast(`📝 已收進「我的錯題練習卷」，之後可以再練一次！`);
+        showQuizToast(old ? `📝 這題又錯了（第 ${prog.quizWrong[key].wrongCount} 次），已留在錯題本` : `📝 答錯的題目已自動收進「我的錯題本」`);
       } else if (prog.quizWrong[key]) {
         const w = prog.quizWrong[key];
-        w.rightStreak = (w.rightStreak || 0) + 1; w.lastTime = now;
+        // 兩次答對要間隔 10 分鐘以上才算，避免剛看完答案馬上再按一次就「刷」掉
+        const gapOk = !w.lastRight || (Date.now() - new Date(w.lastRight).getTime()) > 10 * 60 * 1000;
+        if (!gapOk) {
+          showQuizToast("👍 答對了！隔 10 分鐘以上再答對一次，才算真正熟練");
+          return;
+        }
+        w.rightStreak = (w.rightStreak || 0) + 1; w.lastRight = now; w.lastTime = now;
         if (w.rightStreak >= 2) {
           delete prog.quizWrong[key];
-          showQuizToast(`🎉 這題已連續答對 2 次，移出錯題卷！`);
+          showQuizToast(`🎉 這題已經連續答對 2 次，從錯題本畢業！`);
         } else {
-          showQuizToast(`👍 答對了！錯題再答對 1 次就能移出錯題卷`);
+          showQuizToast(`👍 答對了！隔一段時間再答對 1 次，就能從錯題本畢業`);
         }
       } else {
         return;
       }
       saveQuizProgress(stu, prog);
       refreshMyWrongCount();
+    }
+
+    // 學生登入自己練習時，點選選項就立即批改；老師投影時保留「先選、再按揭曉」
+    function isStudentSelfPractice() {
+      const stu = getQuizStudent();
+      return !!(stu && !stu.isAdmin && !(quizAuth && quizAuth.isAdmin));
     }
 
     function cardIdOf(q) {
@@ -937,18 +944,18 @@
       btnExamModal.onclick = () => { selectSet('real_exam'); closeSetModal(); };
       modalGrid.appendChild(btnExamModal);
 
-      // 📝 我的錯題練習卷
+      // 📝 我的錯題本
       const optWrong = document.createElement("option");
       optWrong.value = "mywrong";
       optWrong.style.fontWeight = "bold";
-      optWrong.innerText = `📝 我的錯題練習卷 (${myWrongCount()} 題)`;
+      optWrong.innerText = `📝 我的錯題本 (${myWrongCount()} 題)`;
       select.appendChild(optWrong);
       const btnWrong = document.createElement("button");
       btnWrong.className = `modal-set-btn ${currentSet === 'mywrong' ? 'active' : ''}`;
       btnWrong.id = "modalSetBtn_mywrong";
       btnWrong.style.gridColumn = "1 / -1";
       btnWrong.style.borderColor = "#7c3aed";
-      btnWrong.innerHTML = `<strong>📝 我的錯題練習卷 (${myWrongCount()} 題)</strong><div style="font-size:0.85rem; opacity:0.85;">自動收集你答錯的題目；同一題在不同次練習中連續答對 2 次就會移出</div>`;
+      btnWrong.innerHTML = `<strong>📝 我的錯題本 (${myWrongCount()} 題)</strong><div style="font-size:0.85rem; opacity:0.85;">自動收集你答錯的題目；同一題隔一段時間連續答對 2 次就會畢業</div>`;
       btnWrong.onclick = () => { selectSet('mywrong'); closeSetModal(); };
       modalGrid.appendChild(btnWrong);
 
@@ -1023,7 +1030,7 @@
         if (currentSet === "real_exam") {
           titleEl.innerText = `🎯 歷屆基測會考特招成語真題特輯（全套 ${(all_sets_data.real_exam||[]).length} 題真實原題全覽）`;
         } else if (currentSet === "mywrong") {
-          titleEl.innerText = `📝 我的錯題練習卷（共 ${(all_sets_data.mywrong||[]).length} 題）`;
+          titleEl.innerText = `📝 我的錯題本（共 ${(all_sets_data.mywrong||[]).length} 題）`;
         } else if (typeof currentSet === "string") {
           titleEl.innerText = `📚 補充卷 ${currentSet.slice(4)}（${(all_sets_data[currentSet]||[]).length} 題全覽）`;
         } else {
@@ -1035,9 +1042,9 @@
 
       renderProjectorQuickBar();
       if (currentSet === "mywrong" && getQuestions().length === 0) {
-        document.getElementById("projQBadge").innerText = "📝 我的錯題練習卷";
+        document.getElementById("projQBadge").innerText = "📝 我的錯題本";
         document.getElementById("projIdiomBadge").innerText = "目前沒有錯題";
-        document.getElementById("projStem").innerText = "目前沒有錯題 🎉\n在任何一卷選好答案後按「揭曉答案」，答錯的題目就會自動收進這裡。";
+        document.getElementById("projStem").innerText = "目前沒有錯題 🎉\n在任何一卷作答，答錯的題目就會自動收進這裡。";
         document.getElementById("projOptions").innerHTML = "";
         document.getElementById("projExplanation").classList.remove("show");
         document.getElementById("currentQDisplay").innerText = 0;
@@ -1140,7 +1147,7 @@
         document.getElementById("projQBadge").innerText = `🎯 歷屆真題 第 ${idx + 1} / ${totalQs} 題`;
         document.getElementById("projIdiomBadge").innerText = `真題出處：${q.year}`;
       } else if (currentSet === "mywrong") {
-        document.getElementById("projQBadge").innerText = `📝 錯題 第 ${idx + 1} / ${totalQs} 題（原${setLabel(q.origSet)} 第 ${q.origId} 題・錯 ${q.wrongCount} 次）`;
+        document.getElementById("projQBadge").innerText = `📝 錯題 第 ${idx + 1} / ${totalQs} 題（原${setLabel(q.origSet)} 第 ${q.origId} 題・錯 ${q.wrongCount} 次・已答對 ${q.rightStreak || 0}/2）`;
         document.getElementById("projIdiomBadge").innerText = `出處年份：${q.year}`;
       } else if (typeof currentSet === "string") {
         document.getElementById("projQBadge").innerText = `📚 補充卷${currentSet.slice(4)} 第 ${q.id} / ${totalQs} 題${q.cat ? "・" + q.cat : ""}`;
@@ -1191,7 +1198,11 @@
         item.onclick = () => {
           if (!isRevealed) {
             selectedOptionIndex = optIdx;
-            renderProjectorOptions(q);
+            if (isStudentSelfPractice()) {
+              toggleRevealAnswer(); // 學生自己練習：點選答案立即對答並記錄錯題
+            } else {
+              renderProjectorOptions(q);
+            }
           }
         };
         container.appendChild(item);
@@ -1232,6 +1243,15 @@
       const qs = getQuestions();
       if (currentQIndex < qs.length - 1) {
         loadProjectorQuestion(currentQIndex + 1);
+      } else if (currentSet === "mywrong") {
+        const left = buildMyWrongSet().length;
+        if (left) {
+          showQuizToast(`🔁 錯題本做完一輪！還有 ${left} 題，從第 1 題再練一次`);
+          selectSet("mywrong");
+        } else {
+          selectSet("mywrong");
+          showQuizToast("🎉 錯題本全部畢業了！");
+        }
       }
     }
 
@@ -1456,6 +1476,7 @@
         if (swBtn) swBtn.style.display = "inline-flex";
         initFlashcardReturnHint(authRes);
         initSetControls();
+        refreshMyWrongCount();
         const urlParams = new URLSearchParams(window.location.search);
         const reqSet = urlParams.get("set");
         const saved = readQuizPosition();

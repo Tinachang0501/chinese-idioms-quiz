@@ -1050,6 +1050,22 @@
       renderAllList();
     }
 
+    // 記住目前的卷別與題號 (手機切換 App 後頁面被重新載入時可接續)
+    const QUIZ_POS_KEY = "idiom_quiz_last_pos";
+    function saveQuizPosition() {
+      try { sessionStorage.setItem(QUIZ_POS_KEY, JSON.stringify({ set: currentSet, idx: currentQIndex, mode: currentMode })); } catch (e) {}
+      try { localStorage.setItem(QUIZ_POS_KEY, JSON.stringify({ set: currentSet, idx: currentQIndex, mode: currentMode, t: Date.now() })); } catch (e) {}
+    }
+    function readQuizPosition() {
+      try {
+        const s1 = sessionStorage.getItem(QUIZ_POS_KEY);
+        if (s1) return JSON.parse(s1);
+        const s2 = JSON.parse(localStorage.getItem(QUIZ_POS_KEY) || "null");
+        if (s2 && Date.now() - (s2.t || 0) < 12 * 3600 * 1000) return s2;
+      } catch (e) {}
+      return null;
+    }
+
     function changeSetDelta(delta) {
       const order = setOrder();
       let i = order.findIndex(k => String(k) === String(currentSet));
@@ -1068,6 +1084,7 @@
     // 模式切換
     function switchMode(mode) {
       currentMode = mode;
+      saveQuizPosition();
       document.getElementById("view-projector").classList.toggle("active", mode === "projector");
       document.getElementById("view-lookup").classList.toggle("active", mode === "lookup");
       document.getElementById("view-alllist").classList.toggle("active", mode === "alllist");
@@ -1117,6 +1134,7 @@
 
       const q = qs[idx];
       const totalQs = qs.length;
+      saveQuizPosition();
       answerRecordedFor = null;
       if (currentSet === "real_exam") {
         document.getElementById("projQBadge").innerText = `🎯 歷屆真題 第 ${idx + 1} / ${totalQs} 題`;
@@ -1220,36 +1238,46 @@
     // 鍵盤左右鍵與空白鍵互動
     document.addEventListener("keydown", function(e) {
       if (currentMode !== "projector") return;
+      const tag = (e.target.tagName || "").toUpperCase();
+      // 焦點在按鈕、輸入框、選單上時不攔截，避免「點完按鈕再按空白/Enter」重複觸發
+      if (["INPUT", "SELECT", "TEXTAREA", "BUTTON", "A"].includes(tag)) return;
+      if (document.getElementById("setModalOverlay")?.classList.contains("open")) return;
       if (e.key === "ArrowLeft") prevQuestion();
       if (e.key === "ArrowRight") nextQuestion();
       if (e.key === " " || e.key === "Enter") {
-        if (e.target.tagName !== "INPUT" && e.target.tagName !== "SELECT") {
-          e.preventDefault();
-          toggleRevealAnswer();
-        }
+        e.preventDefault();
+        toggleRevealAnswer();
       }
     });
 
     // 平板觸控手勢滑動支援 (Swipe Left / Right)
-    let touchStartX = 0;
-    let touchEndX = 0;
+    // 只在「題目卡片」上、單指、明顯水平滑動時才換題；
+    // 捲動題號列、上下捲動頁面、雙指縮放都不會再誤觸換題。
+    let swipeStart = null;
     document.addEventListener("touchstart", function(e) {
-      touchStartX = e.changedTouches[0].screenX;
-    }, false);
+      swipeStart = null;
+      if (currentMode !== "projector" || e.touches.length !== 1) return;
+      const t = e.target;
+      if (!t.closest || !t.closest(".projector-card")) return;
+      if (t.closest(".quick-num-bar, select, input, textarea, button, a, .projector-explanation")) return;
+      const p = e.touches[0];
+      swipeStart = { x: p.clientX, y: p.clientY, time: Date.now() };
+    }, { passive: true });
+    document.addEventListener("touchmove", function(e) {
+      if (swipeStart && e.touches.length !== 1) swipeStart = null; // 雙指縮放
+    }, { passive: true });
     document.addEventListener("touchend", function(e) {
-      if (currentMode !== "projector") return;
-      touchEndX = e.changedTouches[0].screenX;
-      handleSwipe();
-    }, false);
-
-    function handleSwipe() {
-      const threshold = 60;
-      if (touchEndX < touchStartX - threshold) {
-        nextQuestion(); // 向左滑動下一題
-      } else if (touchEndX > touchStartX + threshold) {
-        prevQuestion(); // 向右滑動上一題
-      }
-    }
+      if (!swipeStart || currentMode !== "projector") { swipeStart = null; return; }
+      const p = e.changedTouches[0];
+      const dx = p.clientX - swipeStart.x;
+      const dy = p.clientY - swipeStart.y;
+      const dt = Date.now() - swipeStart.time;
+      swipeStart = null;
+      const sel = window.getSelection && String(window.getSelection());
+      if (sel) return; // 正在選取文字
+      if (Math.abs(dx) < 90 || Math.abs(dx) < Math.abs(dy) * 2 || dt > 800) return;
+      if (dx < 0) nextQuestion(); else prevQuestion();
+    }, { passive: true });
 
     // 自主速查模式
     function renderLookupQuickTags() {
@@ -1412,8 +1440,15 @@
       window.location.href = "flashcards.html?resume=main";
     }
 
+    let quizInited = false;
     window.onload = function() {
       window.IdiomAuth.requireSchoolAuth("questions", (authRes) => {
+        // 登入狀態在背景重新確認時，不要重新初始化 (以前會被導回第 1 卷第 1 題)
+        if (quizInited) {
+          quizAuth = authRes;
+          return;
+        }
+        quizInited = true;
         all_sets_data = window.all_sets_data || {};
         quizAuth = authRes;
         pullQuizProgressFromCloud();
@@ -1423,19 +1458,18 @@
         initSetControls();
         const urlParams = new URLSearchParams(window.location.search);
         const reqSet = urlParams.get("set");
-        if (reqSet === "real_exam" || reqSet === "0") {
-          selectSet("real_exam");
-        } else if (reqSet === "mywrong" || /^supp\d+$/.test(reqSet || "")) {
-          selectSet(reqSet);
-        } else if (reqSet) {
-          const n = parseInt(reqSet);
-          if (!isNaN(n) && n >= 1 && n <= 36) {
-            selectSet(n);
-          } else {
-            selectSet(1);
-          }
-        } else {
-          selectSet(1);
+        const saved = readQuizPosition();
+        let target = 1;
+        if (reqSet === "real_exam" || reqSet === "0") target = "real_exam";
+        else if (reqSet === "mywrong" || /^supp\d+$/.test(reqSet || "")) target = reqSet;
+        else if (reqSet && !isNaN(parseInt(reqSet)) && parseInt(reqSet) >= 1 && parseInt(reqSet) <= 36) target = parseInt(reqSet);
+        else if (saved && saved.set !== undefined && (saved.set === "real_exam" || saved.set === "mywrong" || all_sets_data[saved.set])) target = saved.set;
+        selectSet(target);
+        if (saved && String(saved.set) === String(currentSet) && saved.idx > 0 && saved.idx < getQuestions().length) {
+          loadProjectorQuestion(saved.idx);
+        }
+        if (saved && saved.mode && saved.mode !== "projector" && String(saved.set) === String(currentSet)) {
+          switchMode(saved.mode);
         }
       });
     };

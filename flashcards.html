@@ -1185,8 +1185,35 @@
     }
 
     // 合併雲端的「不熟悉成語」與「會考題錯題紀錄」(練習題頁也會寫入)
+    let cloudLearnedFloor = 0;
+    let cloudMerged = false; // 必須先成功讀取雲端紀錄，才允許寫回雲端，避免空白紀錄蓋掉舊紀錄
+    async function ensureCloudMerged() {
+      if (cloudMerged) return true;
+      try {
+        const res = await window.IdiomAuth.authFetchFirestore(`idiom_student_progress/${encodeURIComponent(currentStudent.studentKey)}`);
+        if (res.status === 404) { cloudMerged = true; return true; }
+        if (!res.ok) return false;
+        const f = (await res.json()).fields || {};
+        mergeCloudProgressMaps(f);
+        studentProgress.totalFlipped = Math.max(studentProgress.totalFlipped || 0, parseInt(f.totalFlipped?.integerValue || "0", 10));
+        if ((!studentProgress.rangeProgress || !Object.keys(studentProgress.rangeProgress).length) && f.rangeProgressJSON?.stringValue) {
+          try { studentProgress.rangeProgress = JSON.parse(f.rangeProgressJSON.stringValue); } catch (e) {}
+        }
+        localStorage.setItem(getStorageKey(), JSON.stringify(studentProgress));
+        cloudMerged = true;
+        return true;
+      } catch (e) { return false; }
+    }
+
     function mergeCloudProgressMaps(f) {
       if (!studentProgress.weakness) studentProgress.weakness = {};
+      if (!studentProgress.learned) studentProgress.learned = {};
+      // 舊版雲端只存「已學會數量」，沒有清單：記下來當下限，避免數字變少
+      if (!f.learnedJSON) cloudLearnedFloor = Math.max(cloudLearnedFloor, parseInt(f.learnedCount?.integerValue || "0", 10));
+      try {
+        const cl = JSON.parse(f.learnedJSON?.stringValue || "[]");
+        cl.forEach(id => { if (!studentProgress.weakness[id]) studentProgress.learned[id] = true; });
+      } catch (e) {}
       try {
         const cw = JSON.parse(f.weakIdiomsJSON?.stringValue || "{}");
         Object.keys(cw).forEach(k => { if (!studentProgress.weakness[k]) studentProgress.weakness[k] = cw[k]; });
@@ -1233,9 +1260,11 @@
       // 嘗試從雲端同步最新進度 (附帶 Firebase Auth Token)
       try {
         const res = await window.IdiomAuth.authFetchFirestore(`idiom_student_progress/${encodeURIComponent(currentStudent.studentKey)}`);
+        if (res.status === 404) cloudMerged = true; // 雲端還沒有紀錄 (第一次登入)
         if (res.ok) {
           const cloudDoc = await res.json();
           const f = cloudDoc.fields;
+          cloudMerged = true;
           if (f) {
             mergeCloudProgressMaps(f);
             const cloudFlips = parseInt(f.totalFlipped?.integerValue || "0", 10);
@@ -1256,6 +1285,8 @@
                 } catch(e) {}
               }
             }
+            // 翻卡總數只增不減 (換裝置、清除瀏覽器資料也不會歸零)
+            studentProgress.totalFlipped = Math.max(studentProgress.totalFlipped || 0, cloudFlips);
           }
         }
       } catch (err) {
@@ -1557,6 +1588,11 @@
     async function syncStudentToCloud() {
       if (!currentStudent) return;
       const syncBadge = document.getElementById("stuSyncBadge");
+      if (!(await ensureCloudMerged())) {
+        // 讀不到雲端時只存在本機，等網路恢復再同步，絕不以本機空白紀錄覆蓋雲端
+        if (syncBadge) syncBadge.innerText = "☁️ 暫存本機";
+        return;
+      }
       if (syncBadge) syncBadge.innerText = "☁️ 同步中...";
 
       const weakList = Object.values(studentProgress.weakness || {}).map(w => `${w.idiom}(錯${w.failCount}次)`);
@@ -1574,7 +1610,8 @@
           studentName: { stringValue: currentStudent.name },
           studentKey: { stringValue: emailKey },
           totalFlipped: { integerValue: (studentProgress.totalFlipped || 0).toString() },
-          learnedCount: { integerValue: Object.keys(studentProgress.learned || {}).length.toString() },
+          learnedCount: { integerValue: Math.max(Object.keys(studentProgress.learned || {}).length, cloudLearnedFloor).toString() },
+          learnedJSON: { stringValue: JSON.stringify(Object.keys(studentProgress.learned || {}).map(Number)) },
           weakCount: { integerValue: Object.keys(studentProgress.weakness || {}).length.toString() },
           weakIdiomsSummary: { stringValue: weakList.slice(0, 30).join("、") },
           weakIdiomsJSON: { stringValue: JSON.stringify(studentProgress.weakness || {}) },
@@ -1593,7 +1630,9 @@
       };
 
       try {
-        const res = await window.IdiomAuth.authFetchFirestore(`idiom_student_progress/${encodeURIComponent(emailKey)}`, {
+        // 只更新列出的欄位，其他欄位 (例如練習題頁寫入的資料) 一律保留
+        const mask = Object.keys(payload.fields).map(k => `updateMask.fieldPaths=${k}`).join("&");
+        const res = await window.IdiomAuth.authFetchFirestore(`idiom_student_progress/${encodeURIComponent(emailKey)}?${mask}`, {
           method: "PATCH",
           body: JSON.stringify(payload)
         });

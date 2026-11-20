@@ -737,9 +737,15 @@
       clearTimeout(_quizSyncTimer);
       _quizSyncTimer = setTimeout(() => syncQuizProgressToCloud(stu, prog), 1200);
     }
+    let quizCloudMerged = false; // 先成功讀到雲端紀錄才寫回，避免新裝置的空白紀錄蓋掉舊紀錄
     async function syncQuizProgressToCloud(stu, prog) {
       const email = (stu.email || stu.studentKey || "").toLowerCase();
       if (!email || !window.IdiomAuth) return;
+      if (!quizCloudMerged) {
+        await pullQuizProgressFromCloud();
+        if (!quizCloudMerged) return; // 讀不到雲端：先存本機，下次再同步
+        prog = loadQuizProgress(stu);
+      }
       const weakList = Object.values(prog.weakness || {}).map(w => `${w.idiom}(錯${w.failCount}次)`);
       const fields = {
         authEmail: { stringValue: email },
@@ -765,6 +771,7 @@
       if (!stu || !window.IdiomAuth) return;
       try {
         const res = await window.IdiomAuth.authFetchFirestore(`idiom_student_progress/${encodeURIComponent(stu.studentKey)}`);
+        if (res.status === 404) { quizCloudMerged = true; return; }
         if (!res.ok) return;
         const f = (await res.json()).fields || {};
         const prog = loadQuizProgress(stu);
@@ -775,7 +782,12 @@
         });
         const cw = JSON.parse(f.weakIdiomsJSON?.stringValue || "{}");
         Object.keys(cw).forEach(k => { if (!prog.weakness[k]) prog.weakness[k] = cw[k]; });
+        try {
+          const pw = JSON.parse(f.pendingWeakJSON?.stringValue || "{}");
+          prog.pendingWeak = Object.assign({}, pw, prog.pendingWeak || {});
+        } catch (e) {}
         localStorage.setItem(`idiom_progress_${stu.studentKey}`, JSON.stringify(prog));
+        quizCloudMerged = true;
         refreshMyWrongCount();
       } catch (e) {}
     }
